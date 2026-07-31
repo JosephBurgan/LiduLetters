@@ -120,11 +120,16 @@
     color: var(--muted);
     font-size: 0.94rem;
   }
+  .meta {
+    font-size: 0.75rem;
+    color: #9a9590;
+    margin-top: 0.6rem;
+  }
   .tags {
     display: flex;
     flex-wrap: wrap;
     gap: 0.3rem;
-    margin-top: 0.75rem;
+    margin-top: 0.5rem;
   }
   .tag {
     font-size: 0.7rem;
@@ -137,7 +142,6 @@
     text-align: center;
     color: var(--muted);
     padding: 2.5rem 1rem;
-    display: none;
   }
   footer {
     text-align: center;
@@ -262,7 +266,7 @@
     </div>
     <div class="form-row">
       <label>Location / Event</label>
-      <input type="text" id="adminEvent" placeholder="e.g. Home Session">
+      <input type="text" id="adminEvent" placeholder="e.g. Sedona Telepathy Training">
     </div>
     <div class="form-row">
       <label>Question</label>
@@ -274,13 +278,12 @@
     </div>
     <div class="form-row">
       <label>Tags (comma separated)</label>
-      <input type="text" id="adminTags" placeholder="Spiritual, Guides, Teachers">
+      <input type="text" id="adminTags" placeholder="Telepathy, Teachers, Hill">
     </div>
     <div class="form-actions">
       <button class="btn btn-primary" id="addBtn">Add Answer</button>
       <button class="btn btn-secondary" id="cancelEdit" style="display:none">Cancel Edit</button>
       <button class="btn btn-secondary" id="exportBtn">Export Data</button>
-      <button class="btn btn-secondary" id="resetBtn">Reset Samples</button>
     </div>
 
     <div class="admin-list" id="adminList"></div>
@@ -295,66 +298,17 @@
   </div>
 
   <div id="results"></div>
-  <div class="empty" id="empty">No matching answers found.</div>
+  <div class="empty" id="empty">No answers yet.</div>
 
   <footer>Last updated: July 2026</footer>
 
   <button class="admin-toggle" id="adminToggle" title="Admin">+</button>
 
 <script>
-const defaultData = [
-  {
-    id: 1,
-    q: "What is collective consciousness?",
-    a: "It is the shared field of awareness that connects all beings. We can feel each other there even when bodies cannot speak.",
-    topics: ["Collective Consciousness", "Spiritual"],
-    date: "2025-03-12",
-    event: "Home Session"
-  },
-  {
-    id: 2,
-    q: "Who are the guides?",
-    a: "They are teachers from higher planes who help us remember who we really are. They speak through feeling more than words.",
-    topics: ["Guides", "Teachers", "Spiritual"],
-    date: "2025-03-12",
-    event: "Home Session"
-  },
-  {
-    id: 3,
-    q: "Why does it take so long to answer?",
-    a: "The letterboard is slow because each letter is chosen carefully. The thoughts come fast. The body is the bottleneck.",
-    topics: ["Communication", "Letterboard"],
-    date: "2025-06-04",
-    event: "Family Conversation"
-  },
-  {
-    id: 4,
-    q: "Do you feel lonely when people cannot hear you?",
-    a: "Sometimes the body feels lonely. The soul does not. The soul is always connected.",
-    topics: ["Emotions", "Spiritual"],
-    date: "2025-06-04",
-    event: "Family Conversation"
-  },
-  {
-    id: 5,
-    q: "What do the teachers want us to learn?",
-    a: "To remember that love is the real language. Everything else is practice.",
-    topics: ["Teachers", "Spiritual"],
-    date: "2025-03-12",
-    event: "Home Session"
-  },
-  {
-    id: 6,
-    q: "Is telepathy real?",
-    a: "Yes. Many of us use it every day. Words are only one way to talk.",
-    topics: ["Telepathy", "Communication"],
-    date: "2025-07-20",
-    event: "Inspired by Telepathy Tapes"
-  }
-];
+const defaultData = [];
 
 let data = JSON.parse(localStorage.getItem("liduData")) || [...defaultData];
-let nextId = Math.max(...data.map(d => d.id), 0) + 1;
+let nextId = data.length ? Math.max(...data.map(d => d.id)) + 1 : 1;
 let activeFilter = "all";
 let editingId = null;
 
@@ -379,7 +333,7 @@ function saveData() {
 }
 
 function buildFilters() {
-  const allTopics = [...new Set(data.flatMap(d => d.topics))].sort();
+  const allTopics = [...new Set(data.flatMap(d => d.topics || []))].sort();
   topicFiltersEl.innerHTML = `<button class="filter-btn active" data-filter="all">All</button>`;
   allTopics.forEach(t => {
     const btn = document.createElement("button");
@@ -395,19 +349,19 @@ function render() {
   const isSearching = query.length > 0 || activeFilter !== "all";
 
   const filtered = data.filter(item => {
-    const matchesFilter = activeFilter === "all" || item.topics.includes(activeFilter);
+    const matchesFilter = activeFilter === "all" || (item.topics || []).includes(activeFilter);
     const matchesSearch = !query || 
       item.q.toLowerCase().includes(query) || 
       item.a.toLowerCase().includes(query) ||
-      item.topics.some(t => t.toLowerCase().includes(query)) ||
-      item.event.toLowerCase().includes(query) ||
-      item.date.includes(query);
+      (item.topics || []).some(t => t.toLowerCase().includes(query)) ||
+      (item.event || "").toLowerCase().includes(query) ||
+      (item.date || "").includes(query);
     return matchesFilter && matchesSearch;
   });
 
   const groups = {};
   filtered.forEach(item => {
-    const key = `${item.date} · ${item.event}`;
+    const key = item.date && item.event ? `${item.date} · ${item.event}` : (item.event || item.date || "Ungrouped");
     if (!groups[key]) groups[key] = [];
     groups[key].push(item);
   });
@@ -441,7 +395,8 @@ function render() {
       card.innerHTML = `
         <div class="question">${item.q}</div>
         <div class="answer">${item.a}</div>
-        <div class="tags">${item.topics.map(t => `<span class="tag">${t}</span>`).join("")}</div>
+        ${item.topics && item.topics.length ? `<div class="tags">${item.topics.map(t => `<span class="tag">${t}</span>`).join("")}</div>` : ""}
+        <div class="meta">${item.date || ""}${item.date && item.event ? " · " : ""}${item.event || ""}</div>
       `;
       body.appendChild(card);
     });
@@ -456,13 +411,17 @@ function render() {
 function renderAdminList() {
   const list = document.getElementById("adminList");
   list.innerHTML = "<strong style='font-size:0.85rem'>Current entries</strong>";
+  if (!data.length) {
+    list.innerHTML += "<div style='color:var(--muted);font-size:0.85rem;padding:0.5rem 0'>None yet</div>";
+    return;
+  }
   data.slice().reverse().forEach(item => {
     const row = document.createElement("div");
     row.className = "admin-item";
     row.innerHTML = `
       <div>
         <div class="q">${item.q}</div>
-        <div style="color:var(--muted);font-size:0.8rem">${item.date} · ${item.event}</div>
+        <div style="color:var(--muted);font-size:0.8rem">${item.date || ""} · ${item.event || ""}</div>
       </div>
       <div class="admin-actions">
         <button class="btn-edit" data-id="${item.id}">Edit</button>
@@ -508,8 +467,8 @@ addBtn.addEventListener("click", () => {
   const a = document.getElementById("adminAnswer").value.trim();
   const tags = document.getElementById("adminTags").value.split(",").map(t => t.trim()).filter(Boolean);
 
-  if (!date || !event || !q || !a) {
-    alert("Please fill date, event, question and answer.");
+  if (!q || !a) {
+    alert("Please fill question and answer.");
     return;
   }
 
@@ -562,11 +521,11 @@ document.getElementById("adminList").addEventListener("click", e => {
     const item = data.find(d => d.id === id);
     if (!item) return;
     editingId = id;
-    document.getElementById("adminDate").value = item.date;
-    document.getElementById("adminEvent").value = item.event;
+    document.getElementById("adminDate").value = item.date || "";
+    document.getElementById("adminEvent").value = item.event || "";
     document.getElementById("adminQuestion").value = item.q;
     document.getElementById("adminAnswer").value = item.a;
-    document.getElementById("adminTags").value = item.topics.join(", ");
+    document.getElementById("adminTags").value = (item.topics || []).join(", ");
     formTitle.textContent = "Edit Answer";
     addBtn.textContent = "Save Changes";
     cancelEdit.style.display = "inline-block";
@@ -578,17 +537,6 @@ document.getElementById("adminList").addEventListener("click", e => {
 document.getElementById("exportBtn").addEventListener("click", () => {
   const str = JSON.stringify(data, null, 2);
   navigator.clipboard.writeText(str).then(() => alert("Data copied to clipboard."));
-});
-
-document.getElementById("resetBtn").addEventListener("click", () => {
-  if (confirm("Reset to the original sample questions? This will erase current local changes.")) {
-    data = [...defaultData];
-    nextId = Math.max(...data.map(d => d.id), 0) + 1;
-    saveData();
-    clearForm(false);
-    buildFilters();
-    render();
-  }
 });
 
 buildFilters();
