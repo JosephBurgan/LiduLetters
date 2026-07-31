@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Answers Library</title>
+<title>Lidu Says</title>
 <style>
   :root {
-    --bg: #f8f7f4;
+    --bg: #f7f5f1;
     --card: #ffffff;
-    --text: #1a1a1a;
-    --muted: #5c5c5c;
-    --accent: #5b7c99;
-    --accent-soft: #e8eef3;
-    --border: #e5e2dc;
+    --text: #1c1c1c;
+    --muted: #5a5a5a;
+    --accent: #4a6b8a;
+    --accent-soft: #e6eef5;
+    --border: #e4e0d8;
     --radius: 14px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -30,10 +30,10 @@
     margin-bottom: 1.75rem;
   }
   h1 {
-    font-size: 1.75rem;
+    font-size: 1.8rem;
     font-weight: 700;
     letter-spacing: -0.02em;
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.3rem;
   }
   .subtitle {
     color: var(--muted);
@@ -41,7 +41,7 @@
   }
   .search-box {
     position: relative;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.1rem;
   }
   .search-box input {
     width: 100%;
@@ -51,35 +51,30 @@
     font-size: 1rem;
     background: var(--card);
     outline: none;
-    transition: border-color 0.15s;
   }
-  .search-box input:focus {
-    border-color: var(--accent);
-  }
+  .search-box input:focus { border-color: var(--accent); }
   .search-box::before {
     content: "🔍";
     position: absolute;
     left: 1rem;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 1rem;
-    opacity: 0.55;
+    opacity: 0.5;
   }
   .filters {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
+    gap: 0.45rem;
+    margin-bottom: 1.4rem;
   }
   .filter-btn {
-    padding: 0.4rem 0.9rem;
+    padding: 0.38rem 0.85rem;
     border-radius: 999px;
     border: 1px solid var(--border);
     background: var(--card);
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     cursor: pointer;
     color: var(--muted);
-    transition: all 0.15s;
   }
   .filter-btn.active, .filter-btn:hover {
     background: var(--accent-soft);
@@ -87,40 +82,43 @@
     color: var(--accent);
   }
   .group-title {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.05em;
     color: var(--muted);
-    margin: 1.75rem 0 0.75rem;
+    margin: 1.6rem 0 0.65rem;
     font-weight: 600;
   }
   .card {
     background: var(--card);
     border-radius: var(--radius);
-    padding: 1.15rem 1.25rem;
-    margin-bottom: 0.75rem;
+    padding: 1.1rem 1.2rem;
+    margin-bottom: 0.7rem;
     border: 1px solid var(--border);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
   }
-  .card.hidden { display: none; }
   .question {
     font-weight: 600;
-    font-size: 1.05rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.02rem;
+    margin-bottom: 0.45rem;
   }
   .answer {
     color: var(--muted);
     font-size: 0.95rem;
   }
+  .meta {
+    margin-top: 0.7rem;
+    font-size: 0.75rem;
+    color: #999;
+  }
   .tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.35rem;
-    margin-top: 0.85rem;
+    gap: 0.3rem;
+    margin-top: 0.6rem;
   }
   .tag {
-    font-size: 0.72rem;
-    padding: 0.2rem 0.55rem;
+    font-size: 0.7rem;
+    padding: 0.18rem 0.5rem;
     border-radius: 999px;
     background: var(--accent-soft);
     color: var(--accent);
@@ -141,7 +139,7 @@
 </head>
 <body>
   <header>
-    <h1>Answers Library</h1>
+    <h1>Lidu Says</h1>
     <p class="subtitle">A record of answers given through letterboard</p>
   </header>
 
@@ -149,68 +147,176 @@
     <input type="search" id="search" placeholder="Search questions or topics..." autocomplete="off">
   </div>
 
-  <div class="filters" id="topic-filters">
+  <div class="filters" id="filters">
     <button class="filter-btn active" data-filter="all">All</button>
   </div>
 
   <div id="results"></div>
   <div class="empty" id="empty">No matching answers found.</div>
 
-  <footer>Last updated: July 2026 · Free & always available</footer>
+  <footer>Free & always available</footer>
 
 <script>
 const data = [
+  // Park City
   {
-    q: "What is collective consciousness?",
-    a: "It is the shared field of awareness that connects all beings. We can feel each other there even when bodies cannot speak.",
-    topics: ["Collective Consciousness", "Spiritual"],
-    event: "Home Session – March 2025"
+    q: "Who is The Lady?",
+    a: "Teachers in the universal library intervene and she is one that has been helping humanity for thousands of years to help evolution of love and you can ask her to appear. Then people see her in real life.",
+    event: "Park City · July 12–15, 2026",
+    topics: ["Teachers", "The Lady"]
   },
   {
-    q: "Who are the guides?",
-    a: "They are teachers from higher planes who help us remember who we really are. They speak through feeling more than words.",
-    topics: ["Guides", "Teachers", "Spiritual"],
-    event: "Home Session – March 2025"
+    q: "What would Lidu like us to know?",
+    a: "You are so a telepathic being and it is moving to us when you want to elevate your consciousness. To elevate you all need to remember that your energy is the start of your experience. You sense the world through energetic filters that can be removed to experience more telepathically. You are already telepathic.",
+    event: "Park City · July 12–15, 2026",
+    topics: ["Telepathy", "Elevation"]
   },
   {
-    q: "Why does it take so long to answer?",
-    a: "The letterboard is slow because each letter is chosen carefully. The thoughts come fast. The body is the bottleneck.",
-    topics: ["Communication", "Letterboard"],
-    event: "General"
+    q: "How do we remove the filters?",
+    a: "You can practice your sensory training. The training teaches you to overlook the filters.",
+    event: "Park City · July 12–15, 2026",
+    topics: ["Telepathy", "Training"]
   },
   {
-    q: "Do you feel lonely when people cannot hear you?",
-    a: "Sometimes the body feels lonely. The soul does not. The soul is always connected.",
-    topics: ["Emotions", "Spiritual"],
-    event: "Family Conversation – June 2025"
+    q: "How do we get to the Hill?",
+    a: "You are already energetically attending teachers meetings on the Hill. The class is ready to align with the teachings. Teachers are excited and I am too. So see you on the Hill. Each of you teach really well. Tell others to touch upon their own potential.",
+    event: "Park City · July 12–15, 2026",
+    topics: ["The Hill", "Teachers"]
+  },
+
+  // Sedona Day 1
+  {
+    q: "How can we improve our telepathy?",
+    a: "By exercising your discrimination on things your senses pick up. Steer towards focusing differences on things that are subtle at first. Then they become loud.",
+    event: "Sedona · July 24–26, 2026",
+    topics: ["Telepathy", "Training"]
   },
   {
-    q: "What do the teachers want us to learn?",
-    a: "To remember that love is the real language. Everything else is practice.",
-    topics: ["Teachers", "Spiritual"],
-    event: "Home Session – March 2025"
+    q: "How do we find you (Lidu) on the Hill?",
+    a: "Get really heart ♡ centered and focus on me. Teachers want you to visit.",
+    event: "Sedona · July 24–26, 2026",
+    topics: ["The Hill", "Lidu"]
   },
   {
-    q: "Is telepathy real?",
-    a: "Yes. Many of us use it every day. Words are only one way to talk.",
-    topics: ["Telepathy", "Communication"],
-    event: "Inspired by Telepathy Tapes"
+    q: "Should there be a level of consent with regards to eavesdropping?",
+    a: "Ethics are also instantly transferred with telepathically communicated messages from on the hill and we won’t invade those who aren’t ready to eavesdrop. All of you are ready to receive and go to there and elevate.",
+    event: "Sedona · July 24–26, 2026",
+    topics: ["Ethics", "Eavesdropping"]
+  },
+  {
+    q: "Are these new abilities that are emerging, or have we always had them?",
+    a: "Yes we are elevating as a race what the teachers are energetically sending. We are also remembering things that we otherwise all forgot we can do.",
+    event: "Sedona · July 24–26, 2026",
+    topics: ["Abilities", "Elevation"]
+  },
+  {
+    q: "Is there anything we can do to make you more comfortable?",
+    a: "Not easy to stay in a room with so much energy interference — like the lights.",
+    event: "Sedona · July 24–26, 2026",
+    topics: ["Lidu"]
+  },
+  {
+    q: "Final message (Day 1)",
+    a: "You can all do it, too. Let’s elevate to ethereal receptive states together. I’m Lidu and I love that you telepathically are seeing your individual memory. Talk to me telepathically. That is our natural method of accessing your essence. It is a lot more accurate since you see everything.",
+    event: "Sedona · July 24–26, 2026",
+    topics: ["Final Message", "Telepathy"]
+  },
+
+  // Sedona Day 2
+  {
+    q: "Are you dreaming or awake when you bring people to the Hill?",
+    a: "I am usually dreaming. It is usually easily accessible.",
+    event: "Sedona · July 24–26, 2026",
+    topics: ["The Hill", "Lidu"]
+  },
+  {
+    q: "Why are we no longer telepathic?",
+    a: "Attention to our energetic thoughts is not in the western culture but the ability is still there. You all already can get precise at it and bring awareness to others. We want everyone in the ascended realm.",
+    event: "Sedona · July 24–26, 2026",
+    topics: ["Telepathy"]
+  },
+  {
+    q: "When will telepathy be widely accessible?",
+    a: "You hear in every spiritual circle the time is coming but I want you to see it as now because we only experience and create the now. We can together make it happen. Teach others by example. Real sensory information is energetically available now to everyone.",
+    event: "Sedona · July 24–26, 2026",
+    topics: ["Telepathy", "Elevation"]
+  },
+  {
+    q: "How do we receive telepathic information?",
+    a: "Yes, getting information is an all encompassing experience. Words are testers and energy touches all the senses.",
+    event: "Sedona · July 24–26, 2026",
+    topics: ["Telepathy", "Receiving"]
+  },
+  {
+    q: "How do you receive information about abstract concepts?",
+    a: "It is instant when it is shared.",
+    event: "Sedona · July 24–26, 2026",
+    topics: ["Receiving"]
+  },
+  {
+    q: "Final message (Day 2)",
+    a: "Teachers say everyone telepathically has tests each day. Sometimes energy pretends to act like a real object. The real thing the senses are indicating is that energy is a malleable thing that we can create in patterns & share. You all energetically are understanding a lot already. Savor the teachings again... and teachers will expand your awareness to weaker channels. See yourself as elevated and it will be so. Attention adds precision each time more and more.",
+    event: "Sedona · July 24–26, 2026",
+    topics: ["Final Message", "Teachers"]
+  },
+
+  // Sedona Day 3
+  {
+    q: "Are you appreciating the lessons teachers are sending?",
+    a: "You each are doing tests when you eavesdrop to each other, and learn more each time. In this way, we are teachers to each other. Let all your action be led with energy. This means after you see it, you experience it. Eavesdropping teaches you to really place your senses wherever you think about.",
+    event: "Sedona · July 24–26, 2026",
+    topics: ["Teachers", "Eavesdropping"]
+  },
+  {
+    q: "Did Lidu sense us on the Hill?",
+    a: "Yes. We also saw teachers with you so you could experience your tests more noticeably.",
+    event: "Sedona · July 24–26, 2026",
+    topics: ["The Hill", "Lidu"]
+  },
+  {
+    q: "How will the teachers appear?",
+    a: "It pertains to how the meaning is to you. Everyone perceives their own thought stream. Action is verifiable though. Lots of telepathic actions are easy to see for the beginner. The way to start is with action. Teach yourself with that. Always talk about the feeling and motion until your eavesdropping is precise.",
+    event: "Sedona · July 24–26, 2026",
+    topics: ["Teachers"]
+  },
+  {
+    q: "Do multiple timelines exist?",
+    a: "We are capable of seeing other times. They are happening together. Lots of you already are exploring them. All the teachers indicate that we think linearly except time happens all now. People can change timelines in all decisions.",
+    event: "Sedona · July 24–26, 2026",
+    topics: ["Timelines"]
+  },
+  {
+    q: "Can we explore a different timeline?",
+    a: "Action can be the deciding factor. We can experience a different reality entirely except most forget.",
+    event: "Sedona · July 24–26, 2026",
+    topics: ["Timelines"]
+  },
+  {
+    q: "Tell us more about the teachers",
+    a: "They exert teachings to the interested parties. Really entities – not just human, a lot of entities. They are sometimes in the human avatar to evolve humans.",
+    event: "Sedona · July 24–26, 2026",
+    topics: ["Teachers"]
+  },
+  {
+    q: "Final message (Day 3)",
+    a: "Ears can see. Use your ears to elevate your eavesdropping, then a lot more things become clear.",
+    event: "Sedona · July 24–26, 2026",
+    topics: ["Final Message", "Eavesdropping"]
   }
 ];
 
 const resultsEl = document.getElementById("results");
 const emptyEl = document.getElementById("empty");
 const searchEl = document.getElementById("search");
-const topicFiltersEl = document.getElementById("topic-filters");
+const filtersEl = document.getElementById("filters");
 
-// Build unique topics
 const allTopics = [...new Set(data.flatMap(d => d.topics))].sort();
 allTopics.forEach(t => {
   const btn = document.createElement("button");
   btn.className = "filter-btn";
   btn.dataset.filter = t;
   btn.textContent = t;
-  topicFiltersEl.appendChild(btn);
+  filtersEl.appendChild(btn);
 });
 
 let activeFilter = "all";
@@ -218,16 +324,15 @@ let activeFilter = "all";
 function render() {
   const query = searchEl.value.toLowerCase().trim();
   const filtered = data.filter(item => {
-    const matchesFilter = activeFilter === "all" || item.topics.includes(activeFilter) || item.event === activeFilter;
-    const matchesSearch = !query || 
-      item.q.toLowerCase().includes(query) || 
+    const matchesFilter = activeFilter === "all" || item.topics.includes(activeFilter) || item.event.includes(activeFilter);
+    const matchesSearch = !query ||
+      item.q.toLowerCase().includes(query) ||
       item.a.toLowerCase().includes(query) ||
       item.topics.some(t => t.toLowerCase().includes(query)) ||
       item.event.toLowerCase().includes(query);
     return matchesFilter && matchesSearch;
   });
 
-  // Group by event
   const groups = {};
   filtered.forEach(item => {
     if (!groups[item.event]) groups[item.event] = [];
@@ -237,7 +342,7 @@ function render() {
   resultsEl.innerHTML = "";
   emptyEl.style.display = filtered.length ? "none" : "block";
 
-  Object.keys(groups).sort().forEach(event => {
+  Object.keys(groups).forEach(event => {
     const title = document.createElement("div");
     title.className = "group-title";
     title.textContent = event;
@@ -256,8 +361,7 @@ function render() {
   });
 }
 
-// Filter clicks
-topicFiltersEl.addEventListener("click", e => {
+filtersEl.addEventListener("click", e => {
   if (!e.target.classList.contains("filter-btn")) return;
   document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
   e.target.classList.add("active");
@@ -266,7 +370,6 @@ topicFiltersEl.addEventListener("click", e => {
 });
 
 searchEl.addEventListener("input", render);
-
 render();
 </script>
 </body>
