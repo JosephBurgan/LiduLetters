@@ -145,7 +145,6 @@
     font-size: 0.78rem;
     color: #9a9590;
   }
-  /* Admin */
   .admin-toggle {
     position: fixed;
     bottom: 1rem;
@@ -184,7 +183,7 @@
     color: var(--muted);
     margin-bottom: 0.25rem;
   }
-  .form-row input, .form-row textarea, .form-row select {
+  .form-row input, .form-row textarea {
     width: 100%;
     padding: 0.55rem 0.7rem;
     border: 1px solid var(--border);
@@ -197,6 +196,7 @@
     display: flex;
     gap: 0.5rem;
     margin-top: 1rem;
+    flex-wrap: wrap;
   }
   .btn {
     padding: 0.55rem 1rem;
@@ -228,15 +228,23 @@
     font-size: 0.88rem;
   }
   .admin-item .q { font-weight: 500; }
-  .btn-delete {
+  .admin-actions {
+    display: flex;
+    gap: 0.35rem;
+    flex-shrink: 0;
+  }
+  .btn-edit, .btn-delete {
     background: none;
     border: 1px solid #d4c8c0;
     color: #8a6a5a;
-    padding: 0.25rem 0.6rem;
+    padding: 0.25rem 0.55rem;
     border-radius: 6px;
     font-size: 0.75rem;
     cursor: pointer;
-    flex-shrink: 0;
+  }
+  .btn-edit {
+    border-color: var(--border);
+    color: var(--accent);
   }
 </style>
 </head>
@@ -247,7 +255,7 @@
   </header>
 
   <div class="admin-panel" id="adminPanel">
-    <h2>Add New Answer</h2>
+    <h2 id="formTitle">Add New Answer</h2>
     <div class="form-row">
       <label>Date (YYYY-MM-DD)</label>
       <input type="date" id="adminDate">
@@ -270,7 +278,9 @@
     </div>
     <div class="form-actions">
       <button class="btn btn-primary" id="addBtn">Add Answer</button>
+      <button class="btn btn-secondary" id="cancelEdit" style="display:none">Cancel Edit</button>
       <button class="btn btn-secondary" id="exportBtn">Export Data</button>
+      <button class="btn btn-secondary" id="resetBtn">Reset Samples</button>
     </div>
 
     <div class="admin-list" id="adminList"></div>
@@ -343,11 +353,11 @@ const defaultData = [
   }
 ];
 
-let data = JSON.parse(localStorage.getItem("liduData")) || defaultData;
+let data = JSON.parse(localStorage.getItem("liduData")) || [...defaultData];
 let nextId = Math.max(...data.map(d => d.id), 0) + 1;
 let activeFilter = "all";
+let editingId = null;
 
-// Remember last date + event
 const lastDate = localStorage.getItem("liduLastDate") || "";
 const lastEvent = localStorage.getItem("liduLastEvent") || "";
 
@@ -357,6 +367,9 @@ const searchEl = document.getElementById("search");
 const topicFiltersEl = document.getElementById("topic-filters");
 const adminPanel = document.getElementById("adminPanel");
 const adminToggle = document.getElementById("adminToggle");
+const formTitle = document.getElementById("formTitle");
+const addBtn = document.getElementById("addBtn");
+const cancelEdit = document.getElementById("cancelEdit");
 
 document.getElementById("adminDate").value = lastDate;
 document.getElementById("adminEvent").value = lastEvent;
@@ -392,7 +405,6 @@ function render() {
     return matchesFilter && matchesSearch;
   });
 
-  // Group by date + event
   const groups = {};
   filtered.forEach(item => {
     const key = `${item.date} · ${item.event}`;
@@ -407,21 +419,18 @@ function render() {
 
   sortedKeys.forEach(key => {
     const group = document.createElement("div");
-    group.className = "group" + (isSearching ? "" : "");
+    group.className = "group";
 
+    const header = document.createElement("div");
+    header.className = "group-header";
     if (!isSearching) {
-      const header = document.createElement("div");
-      header.className = "group-header";
       header.innerHTML = `<span class="arrow">▼</span> ${key}`;
       header.onclick = () => group.classList.toggle("collapsed");
-      group.appendChild(header);
     } else {
-      const header = document.createElement("div");
-      header.className = "group-header";
       header.style.cursor = "default";
       header.textContent = key;
-      group.appendChild(header);
     }
+    group.appendChild(header);
 
     const body = document.createElement("div");
     body.className = "group-body";
@@ -451,14 +460,33 @@ function renderAdminList() {
     const row = document.createElement("div");
     row.className = "admin-item";
     row.innerHTML = `
-      <div><div class="q">${item.q}</div><div style="color:var(--muted);font-size:0.8rem">${item.date} · ${item.event}</div></div>
-      <button class="btn-delete" data-id="${item.id}">Delete</button>
+      <div>
+        <div class="q">${item.q}</div>
+        <div style="color:var(--muted);font-size:0.8rem">${item.date} · ${item.event}</div>
+      </div>
+      <div class="admin-actions">
+        <button class="btn-edit" data-id="${item.id}">Edit</button>
+        <button class="btn-delete" data-id="${item.id}">Delete</button>
+      </div>
     `;
     list.appendChild(row);
   });
 }
 
-// Events
+function clearForm(keepDateEvent = true) {
+  if (!keepDateEvent) {
+    document.getElementById("adminDate").value = "";
+    document.getElementById("adminEvent").value = "";
+  }
+  document.getElementById("adminQuestion").value = "";
+  document.getElementById("adminAnswer").value = "";
+  document.getElementById("adminTags").value = "";
+  editingId = null;
+  formTitle.textContent = "Add New Answer";
+  addBtn.textContent = "Add Answer";
+  cancelEdit.style.display = "none";
+}
+
 topicFiltersEl.addEventListener("click", e => {
   if (!e.target.classList.contains("filter-btn")) return;
   document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
@@ -473,7 +501,7 @@ adminToggle.addEventListener("click", () => {
   adminPanel.classList.toggle("open");
 });
 
-document.getElementById("addBtn").addEventListener("click", () => {
+addBtn.addEventListener("click", () => {
   const date = document.getElementById("adminDate").value;
   const event = document.getElementById("adminEvent").value.trim();
   const q = document.getElementById("adminQuestion").value.trim();
@@ -485,36 +513,82 @@ document.getElementById("addBtn").addEventListener("click", () => {
     return;
   }
 
-  data.push({ id: nextId++, q, a, topics: tags, date, event });
-  saveData();
+  if (editingId) {
+    const item = data.find(d => d.id === editingId);
+    if (item) {
+      item.date = date;
+      item.event = event;
+      item.q = q;
+      item.a = a;
+      item.topics = tags;
+    }
+  } else {
+    data.push({ id: nextId++, q, a, topics: tags, date, event });
+  }
 
+  saveData();
   localStorage.setItem("liduLastDate", date);
   localStorage.setItem("liduLastEvent", event);
 
-  // clear only q, a, tags
-  document.getElementById("adminQuestion").value = "";
-  document.getElementById("adminAnswer").value = "";
-  document.getElementById("adminTags").value = "";
+  clearForm(true);
+  document.getElementById("adminDate").value = date;
+  document.getElementById("adminEvent").value = event;
 
   buildFilters();
   render();
 });
 
+cancelEdit.addEventListener("click", () => {
+  clearForm(true);
+  document.getElementById("adminDate").value = localStorage.getItem("liduLastDate") || "";
+  document.getElementById("adminEvent").value = localStorage.getItem("liduLastEvent") || "";
+});
+
 document.getElementById("adminList").addEventListener("click", e => {
-  if (!e.target.classList.contains("btn-delete")) return;
   const id = Number(e.target.dataset.id);
-  const confirmText = prompt('Type "delete" to confirm removal');
-  if (confirmText === "delete") {
-    data = data.filter(d => d.id !== id);
-    saveData();
-    buildFilters();
-    render();
+  if (!id) return;
+
+  if (e.target.classList.contains("btn-delete")) {
+    const confirmText = prompt('Type "delete" to confirm removal');
+    if (confirmText === "delete") {
+      data = data.filter(d => d.id !== id);
+      saveData();
+      buildFilters();
+      render();
+    }
+  }
+
+  if (e.target.classList.contains("btn-edit")) {
+    const item = data.find(d => d.id === id);
+    if (!item) return;
+    editingId = id;
+    document.getElementById("adminDate").value = item.date;
+    document.getElementById("adminEvent").value = item.event;
+    document.getElementById("adminQuestion").value = item.q;
+    document.getElementById("adminAnswer").value = item.a;
+    document.getElementById("adminTags").value = item.topics.join(", ");
+    formTitle.textContent = "Edit Answer";
+    addBtn.textContent = "Save Changes";
+    cancelEdit.style.display = "inline-block";
+    adminPanel.classList.add("open");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 });
 
 document.getElementById("exportBtn").addEventListener("click", () => {
   const str = JSON.stringify(data, null, 2);
-  navigator.clipboard.writeText(str).then(() => alert("Data copied to clipboard. Paste it to me if you want it saved permanently on the site."));
+  navigator.clipboard.writeText(str).then(() => alert("Data copied to clipboard."));
+});
+
+document.getElementById("resetBtn").addEventListener("click", () => {
+  if (confirm("Reset to the original sample questions? This will erase current local changes.")) {
+    data = [...defaultData];
+    nextId = Math.max(...data.map(d => d.id), 0) + 1;
+    saveData();
+    clearForm(false);
+    buildFilters();
+    render();
+  }
 });
 
 buildFilters();
