@@ -1,0 +1,2 @@
+# faq
+Public FAQ page
