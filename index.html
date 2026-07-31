@@ -3,83 +3,271 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FAQ</title>
+<title>Answers Library</title>
 <style>
+  :root {
+    --bg: #f8f7f4;
+    --card: #ffffff;
+    --text: #1a1a1a;
+    --muted: #5c5c5c;
+    --accent: #5b7c99;
+    --accent-soft: #e8eef3;
+    --border: #e5e2dc;
+    --radius: 14px;
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    font-family: system-ui, -apple-system, sans-serif;
-    background: #f5f5f5;
-    color: #222;
-    line-height: 1.5;
-    padding: 1rem;
-    max-width: 700px;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    padding: 1.25rem;
+    max-width: 780px;
     margin: 0 auto;
   }
-  h1 {
+  header {
     text-align: center;
-    margin: 1.5rem 0 2rem;
-    font-size: 1.8rem;
+    margin-bottom: 1.75rem;
   }
-  details {
-    background: white;
-    border-radius: 12px;
-    margin-bottom: 0.75rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    overflow: hidden;
+  h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.35rem;
   }
-  summary {
-    padding: 1rem 1.25rem;
-    font-weight: 600;
-    cursor: pointer;
-    list-style: none;
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+  .search-box {
+    position: relative;
+    margin-bottom: 1.25rem;
+  }
+  .search-box input {
+    width: 100%;
+    padding: 0.9rem 1rem 0.9rem 2.75rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 1rem;
+    background: var(--card);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-box input:focus {
+    border-color: var(--accent);
+  }
+  .search-box::before {
+    content: "🔍";
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1rem;
+    opacity: 0.55;
+  }
+  .filters {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
   }
-  summary::-webkit-details-marker { display: none; }
-  summary::after {
-    content: "+";
-    font-size: 1.4rem;
-    font-weight: 400;
-    color: #666;
+  .filter-btn {
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    font-size: 0.85rem;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.15s;
   }
-  details[open] summary::after { content: "−"; }
+  .filter-btn.active, .filter-btn:hover {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .group-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin: 1.75rem 0 0.75rem;
+    font-weight: 600;
+  }
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 1.15rem 1.25rem;
+    margin-bottom: 0.75rem;
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  }
+  .card.hidden { display: none; }
+  .question {
+    font-weight: 600;
+    font-size: 1.05rem;
+    margin-bottom: 0.5rem;
+  }
   .answer {
-    padding: 0 1.25rem 1.25rem;
-    color: #444;
-    border-top: 1px solid #eee;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.85rem;
+  }
+  .tag {
+    font-size: 0.72rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .empty {
+    text-align: center;
+    color: var(--muted);
+    padding: 2.5rem 1rem;
+    display: none;
   }
   footer {
     text-align: center;
     margin-top: 2.5rem;
-    font-size: 0.85rem;
-    color: #888;
+    font-size: 0.8rem;
+    color: #999;
   }
 </style>
 </head>
 <body>
-  <h1>Frequently Asked Questions</h1>
+  <header>
+    <h1>Answers Library</h1>
+    <p class="subtitle">A record of answers given through letterboard</p>
+  </header>
 
-  <details>
-    <summary>What is this?</summary>
-    <div class="answer">Replace this with your answer.</div>
-  </details>
+  <div class="search-box">
+    <input type="search" id="search" placeholder="Search questions or topics..." autocomplete="off">
+  </div>
 
-  <details>
-    <summary>How do I update this page?</summary>
-    <div class="answer">Edit the HTML file and re-upload / push to GitHub Pages.</div>
-  </details>
+  <div class="filters" id="topic-filters">
+    <button class="filter-btn active" data-filter="all">All</button>
+  </div>
 
-  <details>
-    <summary>Is this free to host?</summary>
-    <div class="answer">Yes. Use GitHub Pages, Cloudflare Pages, or Netlify free tier.</div>
-  </details>
+  <div id="results"></div>
+  <div class="empty" id="empty">No matching answers found.</div>
 
-  <details>
-    <summary>Can I add more questions?</summary>
-    <div class="answer">Copy a &lt;details&gt; block and change the text.</div>
-  </details>
+  <footer>Last updated: July 2026 · Free & always available</footer>
 
-  <footer>Last updated: July 2026</footer>
+<script>
+const data = [
+  {
+    q: "What is collective consciousness?",
+    a: "It is the shared field of awareness that connects all beings. We can feel each other there even when bodies cannot speak.",
+    topics: ["Collective Consciousness", "Spiritual"],
+    event: "Home Session – March 2025"
+  },
+  {
+    q: "Who are the guides?",
+    a: "They are teachers from higher planes who help us remember who we really are. They speak through feeling more than words.",
+    topics: ["Guides", "Teachers", "Spiritual"],
+    event: "Home Session – March 2025"
+  },
+  {
+    q: "Why does it take so long to answer?",
+    a: "The letterboard is slow because each letter is chosen carefully. The thoughts come fast. The body is the bottleneck.",
+    topics: ["Communication", "Letterboard"],
+    event: "General"
+  },
+  {
+    q: "Do you feel lonely when people cannot hear you?",
+    a: "Sometimes the body feels lonely. The soul does not. The soul is always connected.",
+    topics: ["Emotions", "Spiritual"],
+    event: "Family Conversation – June 2025"
+  },
+  {
+    q: "What do the teachers want us to learn?",
+    a: "To remember that love is the real language. Everything else is practice.",
+    topics: ["Teachers", "Spiritual"],
+    event: "Home Session – March 2025"
+  },
+  {
+    q: "Is telepathy real?",
+    a: "Yes. Many of us use it every day. Words are only one way to talk.",
+    topics: ["Telepathy", "Communication"],
+    event: "Inspired by Telepathy Tapes"
+  }
+];
+
+const resultsEl = document.getElementById("results");
+const emptyEl = document.getElementById("empty");
+const searchEl = document.getElementById("search");
+const topicFiltersEl = document.getElementById("topic-filters");
+
+// Build unique topics
+const allTopics = [...new Set(data.flatMap(d => d.topics))].sort();
+allTopics.forEach(t => {
+  const btn = document.createElement("button");
+  btn.className = "filter-btn";
+  btn.dataset.filter = t;
+  btn.textContent = t;
+  topicFiltersEl.appendChild(btn);
+});
+
+let activeFilter = "all";
+
+function render() {
+  const query = searchEl.value.toLowerCase().trim();
+  const filtered = data.filter(item => {
+    const matchesFilter = activeFilter === "all" || item.topics.includes(activeFilter) || item.event === activeFilter;
+    const matchesSearch = !query || 
+      item.q.toLowerCase().includes(query) || 
+      item.a.toLowerCase().includes(query) ||
+      item.topics.some(t => t.toLowerCase().includes(query)) ||
+      item.event.toLowerCase().includes(query);
+    return matchesFilter && matchesSearch;
+  });
+
+  // Group by event
+  const groups = {};
+  filtered.forEach(item => {
+    if (!groups[item.event]) groups[item.event] = [];
+    groups[item.event].push(item);
+  });
+
+  resultsEl.innerHTML = "";
+  emptyEl.style.display = filtered.length ? "none" : "block";
+
+  Object.keys(groups).sort().forEach(event => {
+    const title = document.createElement("div");
+    title.className = "group-title";
+    title.textContent = event;
+    resultsEl.appendChild(title);
+
+    groups[event].forEach(item => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <div class="question">${item.q}</div>
+        <div class="answer">${item.a}</div>
+        <div class="tags">${item.topics.map(t => `<span class="tag">${t}</span>`).join("")}</div>
+      `;
+      resultsEl.appendChild(card);
+    });
+  });
+}
+
+// Filter clicks
+topicFiltersEl.addEventListener("click", e => {
+  if (!e.target.classList.contains("filter-btn")) return;
+  document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+  e.target.classList.add("active");
+  activeFilter = e.target.dataset.filter;
+  render();
+});
+
+searchEl.addEventListener("input", render);
+
+render();
+</script>
 </body>
 </html>
