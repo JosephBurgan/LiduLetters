@@ -2,188 +2,424 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#061018">
+<meta name="description" content="Lidu Letters — questions answered through letterboard">
 <title>Lidu Letters</title>
 <style>
   :root {
-    --bg: #f7f5f2;
-    --card: #ffffff;
-    --text: #1c1b19;
-    --muted: #6b6560;
-    --accent: #4a5d6a;
-    --accent-soft: #e8eef1;
-    --border: #e4e0d9;
-    --radius: 12px;
+    --bg: #061018;
+    --bg-2: #0a1a28;
+    --card: #0f2436;
+    --card-hover: #143049;
+    --text: #e8f4ff;
+    --muted: #8aa4b8;
+    --sonic: #1b9fff;
+    --sonic-bright: #4ec3ff;
+    --sonic-deep: #0070c9;
+    --purple: #9b6dff;
+    --purple-soft: #c4a8ff;
+    --green: #3dff9a;
+    --green-soft: #9affc9;
+    --border: rgba(75, 180, 255, 0.22);
+    --glow: rgba(27, 159, 255, 0.35);
+    --radius: 18px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
   }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
   body {
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-    background: var(--bg);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background:
+      radial-gradient(ellipse 120% 80% at 10% -10%, rgba(155, 109, 255, 0.22), transparent 50%),
+      radial-gradient(ellipse 100% 70% at 90% 10%, rgba(27, 159, 255, 0.28), transparent 45%),
+      radial-gradient(ellipse 80% 50% at 50% 100%, rgba(61, 255, 154, 0.08), transparent 40%),
+      var(--bg);
     color: var(--text);
-    line-height: 1.55;
-    padding: 1.25rem;
-    max-width: 740px;
-    margin: 0 auto;
+    line-height: 1.5;
+    min-height: 100dvh;
+    -webkit-tap-highlight-color: transparent;
   }
-  header {
+
+  .view { display: none; min-height: 100dvh; flex-direction: column; }
+  .view.active { display: flex; }
+
+  /* —— Landing —— */
+  .landing-header {
     text-align: center;
-    margin-bottom: 1.75rem;
+    padding: 1.4rem 1.2rem 0.6rem;
   }
-  h1 {
-    font-size: 1.7rem;
-    font-weight: 650;
-    letter-spacing: -0.025em;
-    margin-bottom: 0.25rem;
+  .landing-header h1 {
+    font-size: clamp(1.85rem, 7vw, 2.4rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    background: linear-gradient(120deg, var(--sonic-bright), var(--purple-soft), var(--green-soft));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 40px var(--glow);
   }
-  .subtitle {
+  .landing-header p {
     color: var(--muted);
     font-size: 0.92rem;
+    margin-top: 0.35rem;
   }
-  .search-box {
+
+  .bubble-stage {
+    flex: 1;
     position: relative;
-    margin-bottom: 1rem;
+    min-height: 58vh;
+    margin: 0.4rem 0.6rem 1rem;
+    overflow: hidden;
   }
-  .search-box input {
-    width: 100%;
-    padding: 0.85rem 1rem 0.85rem 2.6rem;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    font-size: 1rem;
-    background: var(--card);
-    outline: none;
-  }
-  .search-box input:focus { border-color: var(--accent); }
-  .search-box::before {
-    content: "⌕";
+
+  .speech-bubble {
     position: absolute;
-    left: 1.05rem;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 1.1rem;
+    max-width: min(78vw, 280px);
+    padding: 0.85rem 1rem 1rem;
+    border-radius: 22px 22px 22px 8px;
+    background: linear-gradient(160deg, rgba(20, 55, 90, 0.95), rgba(15, 36, 54, 0.98));
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255,255,255,0.04) inset;
+    cursor: pointer;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, max-width 0.3s ease;
+    touch-action: manipulation;
+    animation: floatIn 0.55s ease both;
+  }
+  .speech-bubble::after {
+    content: "";
+    position: absolute;
+    left: 18px;
+    bottom: -10px;
+    width: 16px;
+    height: 16px;
+    background: inherit;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    transform: rotate(45deg);
+    border-radius: 0 0 4px 0;
+  }
+  .speech-bubble:nth-child(3n+1) { border-color: rgba(27, 159, 255, 0.45); }
+  .speech-bubble:nth-child(3n+2) { border-color: rgba(155, 109, 255, 0.45); border-radius: 22px 22px 8px 22px; }
+  .speech-bubble:nth-child(3n+2)::after { left: auto; right: 18px; }
+  .speech-bubble:nth-child(3n) { border-color: rgba(61, 255, 154, 0.35); }
+
+  .speech-bubble:active { transform: scale(0.97); }
+  .speech-bubble.expanded {
+    z-index: 20;
+    max-width: min(92vw, 340px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 24px var(--glow);
+    background: linear-gradient(160deg, #164066, #0f2436);
+  }
+
+  .bubble-q {
+    font-weight: 650;
+    font-size: 0.95rem;
+    line-height: 1.35;
+  }
+  .bubble-a {
+    display: none;
+    margin-top: 0.65rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.88rem;
+    line-height: 1.45;
+  }
+  .speech-bubble.expanded .bubble-a { display: block; color: var(--text); }
+  .bubble-hint {
+    display: block;
+    margin-top: 0.45rem;
+    font-size: 0.7rem;
+    color: var(--sonic-bright);
+    opacity: 0.85;
+  }
+  .speech-bubble.expanded .bubble-hint { display: none; }
+
+  .bubble-more {
+    display: none;
+    margin-top: 0.7rem;
+  }
+  .speech-bubble.expanded .bubble-more { display: block; }
+  .more-toggle {
+    background: none;
+    border: none;
+    color: var(--purple-soft);
+    font-size: 0.78rem;
+    cursor: pointer;
+    padding: 0.2rem 0;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .more-panel {
+    display: none;
+    margin-top: 0.5rem;
+    padding: 0.65rem 0.75rem;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.25);
+    font-size: 0.78rem;
     color: var(--muted);
   }
-  .filters {
+  .more-panel.open { display: block; }
+  .more-panel a { color: var(--sonic-bright); }
+  .more-meta { margin-bottom: 0.35rem; }
+
+  @keyframes floatIn {
+    from { opacity: 0; transform: translateY(16px) scale(0.94); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .landing-footer {
+    padding: 0.75rem 1.1rem calc(1.1rem + var(--safe-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    align-items: stretch;
+  }
+
+  .btn-main {
+    appearance: none;
+    border: none;
+    border-radius: 999px;
+    padding: 0.95rem 1.25rem;
+    font-size: 1.02rem;
+    font-weight: 700;
+    cursor: pointer;
+    color: #041018;
+    background: linear-gradient(120deg, var(--sonic-bright), var(--green));
+    box-shadow: 0 6px 24px var(--glow);
+    touch-action: manipulation;
+  }
+  .btn-main:active { transform: scale(0.98); }
+
+  .btn-ghost {
+    appearance: none;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 999px;
+    padding: 0.65rem 1rem;
+    font-size: 0.88rem;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .btn-ghost:active { background: rgba(27, 159, 255, 0.1); }
+
+  /* —— Browse —— */
+  .browse-top {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: rgba(6, 16, 24, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0.85rem 1rem 0.9rem;
+  }
+  .browse-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 0.75rem;
+  }
+  .back-btn {
+    appearance: none;
+    background: rgba(27, 159, 255, 0.12);
+    border: 1px solid var(--border);
+    color: var(--sonic-bright);
+    border-radius: 999px;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .browse-nav h2 {
+    font-size: 1.15rem;
+    font-weight: 750;
+    letter-spacing: -0.02em;
+  }
+
+  .sort-row {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+  .sort-btn {
+    appearance: none;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--muted);
+    border-radius: 999px;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .sort-btn.active {
+    color: #041018;
+    background: linear-gradient(120deg, var(--sonic), var(--purple));
+    border-color: transparent;
+  }
+
+  .option-chips {
     display: flex;
     flex-wrap: wrap;
     gap: 0.4rem;
-    margin-bottom: 1.5rem;
+    margin-top: 0.65rem;
   }
-  .filter-btn {
-    padding: 0.35rem 0.85rem;
+  .chip {
+    appearance: none;
+    border: 1px solid var(--border);
+    background: rgba(15, 36, 54, 0.8);
+    color: var(--text);
     border-radius: 999px;
-    border: 1px solid var(--border);
-    background: var(--card);
-    font-size: 0.82rem;
-    cursor: pointer;
-    color: var(--muted);
-  }
-  .filter-btn.active, .filter-btn:hover {
-    background: var(--accent-soft);
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-  .group {
-    margin-bottom: 0.9rem;
-  }
-  .group-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.55rem 0.2rem;
-    cursor: pointer;
-    user-select: none;
-    color: var(--muted);
+    padding: 0.38rem 0.8rem;
     font-size: 0.8rem;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
+    cursor: pointer;
   }
-  .group-header .arrow {
-    transition: transform 0.15s;
-    font-size: 0.7rem;
+  .chip.active {
+    border-color: var(--green);
+    color: var(--green-soft);
+    box-shadow: 0 0 0 1px rgba(61, 255, 154, 0.25);
   }
-  .group.collapsed .arrow { transform: rotate(-90deg); }
-  .group.collapsed .group-body { display: none; }
-  .card {
+
+  .browse-body {
+    flex: 1;
+    padding: 0.85rem 1rem 1.5rem;
+    max-width: 720px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .qa-item {
     background: var(--card);
-    border-radius: var(--radius);
-    padding: 1.1rem 1.2rem;
-    margin-bottom: 0.6rem;
     border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 0.55rem;
+    overflow: hidden;
   }
-  .question {
-    font-weight: 600;
-    font-size: 1.02rem;
-    margin-bottom: 0.4rem;
+  .qa-q {
+    width: 100%;
+    text-align: left;
+    appearance: none;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    padding: 1rem 1.05rem;
+    font-size: 0.98rem;
+    font-weight: 650;
+    line-height: 1.35;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+    touch-action: manipulation;
   }
-  .answer {
-    color: var(--muted);
-    font-size: 0.94rem;
+  .qa-q:active { background: var(--card-hover); }
+  .qa-chevron {
+    flex-shrink: 0;
+    color: var(--sonic-bright);
+    transition: transform 0.2s;
+    font-size: 0.85rem;
+    margin-top: 0.15rem;
   }
-  .meta {
+  .qa-item.open .qa-chevron { transform: rotate(90deg); }
+
+  .qa-body {
+    display: none;
+    padding: 0 1.05rem 1rem;
+  }
+  .qa-item.open .qa-body { display: block; }
+  .qa-a {
+    color: var(--text);
+    font-size: 0.92rem;
+    line-height: 1.5;
+    opacity: 0.92;
+  }
+  .qa-meta {
+    margin-top: 0.65rem;
     font-size: 0.75rem;
-    color: #9a9590;
-    margin-top: 0.6rem;
+    color: var(--muted);
   }
   .tags {
     display: flex;
     flex-wrap: wrap;
     gap: 0.3rem;
-    margin-top: 0.5rem;
+    margin-top: 0.55rem;
   }
   .tag {
-    font-size: 0.7rem;
-    padding: 0.18rem 0.5rem;
+    font-size: 0.68rem;
+    padding: 0.15rem 0.5rem;
     border-radius: 999px;
-    background: var(--accent-soft);
-    color: var(--accent);
+    background: rgba(155, 109, 255, 0.18);
+    color: var(--purple-soft);
   }
+  .wiki-block {
+    margin-top: 0.7rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .browse-loop {
+    margin-top: 1.5rem;
+    padding: 1.15rem 1rem;
+    border-radius: var(--radius);
+    border: 1px dashed rgba(27, 159, 255, 0.35);
+    text-align: center;
+    background: rgba(27, 159, 255, 0.06);
+  }
+  .browse-loop p {
+    color: var(--muted);
+    font-size: 0.88rem;
+    margin-bottom: 0.85rem;
+  }
+  .loop-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
   .empty {
     text-align: center;
     color: var(--muted);
-    padding: 2.5rem 1rem;
+    padding: 2rem 1rem;
   }
-  footer {
-    text-align: center;
-    margin-top: 2.5rem;
-    font-size: 0.78rem;
-    color: #9a9590;
-  }
+
+  /* —— Admin (kept, subtle) —— */
   .admin-toggle {
     position: fixed;
-    bottom: 1rem;
-    right: 1rem;
-    width: 36px;
-    height: 36px;
+    bottom: calc(0.75rem + var(--safe-bottom));
+    right: 0.75rem;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     border: 1px solid var(--border);
-    background: var(--card);
+    background: rgba(15, 36, 54, 0.9);
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--muted);
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 50;
+    opacity: 0.55;
   }
   .admin-panel {
     display: none;
+    margin: 0.75rem 1rem 1rem;
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 1.25rem;
-    margin-bottom: 1.5rem;
+    padding: 1.1rem;
   }
   .admin-panel.open { display: block; }
-  .admin-panel h2 {
-    font-size: 1rem;
-    margin-bottom: 1rem;
-  }
-  .form-row {
-    margin-bottom: 0.75rem;
-  }
+  .admin-panel h2 { font-size: 1rem; margin-bottom: 0.85rem; }
+  .form-row { margin-bottom: 0.7rem; }
   .form-row label {
     display: block;
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     color: var(--muted);
     margin-bottom: 0.25rem;
   }
@@ -191,253 +427,406 @@
     width: 100%;
     padding: 0.55rem 0.7rem;
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 0.95rem;
     font-family: inherit;
+    background: var(--bg-2);
+    color: var(--text);
   }
   .form-row textarea { min-height: 70px; resize: vertical; }
-  .form-actions {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 1rem;
-    flex-wrap: wrap;
-  }
+  .form-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.85rem; }
   .btn {
     padding: 0.55rem 1rem;
-    border-radius: 8px;
+    border-radius: 10px;
     border: none;
     font-size: 0.9rem;
     cursor: pointer;
   }
-  .btn-primary {
-    background: var(--accent);
-    color: white;
-  }
-  .btn-secondary {
-    background: var(--accent-soft);
-    color: var(--accent);
-  }
-  .admin-list {
-    margin-top: 1.5rem;
-    border-top: 1px solid var(--border);
-    padding-top: 1rem;
-  }
+  .btn-primary { background: var(--sonic); color: #041018; font-weight: 700; }
+  .btn-secondary { background: rgba(155, 109, 255, 0.2); color: var(--purple-soft); }
+  .admin-list { margin-top: 1.25rem; border-top: 1px solid var(--border); padding-top: 0.85rem; }
   .admin-item {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
     gap: 0.75rem;
-    padding: 0.6rem 0;
+    padding: 0.55rem 0;
     border-bottom: 1px solid var(--border);
-    font-size: 0.88rem;
+    font-size: 0.85rem;
   }
-  .admin-item .q { font-weight: 500; }
-  .admin-actions {
-    display: flex;
-    gap: 0.35rem;
-    flex-shrink: 0;
-  }
+  .admin-actions { display: flex; gap: 0.35rem; flex-shrink: 0; }
   .btn-edit, .btn-delete {
     background: none;
-    border: 1px solid #d4c8c0;
-    color: #8a6a5a;
-    padding: 0.25rem 0.55rem;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 0.25rem 0.5rem;
     border-radius: 6px;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     cursor: pointer;
   }
-  .btn-edit {
-    border-color: var(--border);
-    color: var(--accent);
+
+  @media (min-width: 700px) {
+    .bubble-stage { max-width: 720px; margin-left: auto; margin-right: auto; width: 100%; }
+    .landing-footer { max-width: 420px; margin: 0 auto; width: 100%; }
   }
 </style>
 </head>
 <body>
-  <header>
-    <h1>Lidu Letters</h1>
-    <p class="subtitle">A record of answers given through letterboard</p>
-  </header>
 
-  <div class="admin-panel" id="adminPanel">
-    <h2 id="formTitle">Add New Answer</h2>
-    <div class="form-row">
-      <label>Date (YYYY-MM-DD)</label>
-      <input type="date" id="adminDate">
+  <!-- LANDING -->
+  <section class="view active" id="viewLanding" aria-label="Featured questions">
+    <header class="landing-header">
+      <h1>Lidu Letters</h1>
+      <p>Tap a bubble to peek at an answer</p>
+    </header>
+
+    <div class="admin-panel" id="adminPanel">
+      <h2 id="formTitle">Add New Answer</h2>
+      <div class="form-row">
+        <label>Date (YYYY-MM-DD)</label>
+        <input type="date" id="adminDate">
+      </div>
+      <div class="form-row">
+        <label>Location / Event</label>
+        <input type="text" id="adminEvent" placeholder="e.g. Sedona Telepathy Training">
+      </div>
+      <div class="form-row">
+        <label>Question</label>
+        <input type="text" id="adminQuestion" placeholder="The question asked">
+      </div>
+      <div class="form-row">
+        <label>Answer</label>
+        <textarea id="adminAnswer" placeholder="Lidu's answer"></textarea>
+      </div>
+      <div class="form-row">
+        <label>Tags (comma separated)</label>
+        <input type="text" id="adminTags" placeholder="Telepathy, Teachers, Hill">
+      </div>
+      <div class="form-row">
+        <label>More / references (optional)</label>
+        <textarea id="adminMore" placeholder="Optional wiki-style notes, links…"></textarea>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" id="addBtn">Add Answer</button>
+        <button class="btn btn-secondary" id="cancelEdit" style="display:none">Cancel Edit</button>
+        <button class="btn btn-secondary" id="exportBtn">Export Data</button>
+      </div>
+      <div class="admin-list" id="adminList"></div>
     </div>
-    <div class="form-row">
-      <label>Location / Event</label>
-      <input type="text" id="adminEvent" placeholder="e.g. Sedona Telepathy Training">
+
+    <div class="bubble-stage" id="bubbleStage" aria-live="polite"></div>
+
+    <div class="landing-footer">
+      <button class="btn-main" id="browseBtn">Browse all questions</button>
+      <button class="btn-ghost" id="reshuffleBtn">Show different bubbles</button>
     </div>
-    <div class="form-row">
-      <label>Question</label>
-      <input type="text" id="adminQuestion" placeholder="The question asked">
+  </section>
+
+  <!-- BROWSE -->
+  <section class="view" id="viewBrowse" aria-label="Question list">
+    <div class="browse-top">
+      <div class="browse-nav">
+        <button class="back-btn" id="backHome" type="button">← Bubbles</button>
+        <h2>Questions</h2>
+      </div>
+      <div class="sort-row" role="tablist" aria-label="Sort by">
+        <button class="sort-btn active" data-mode="topic" type="button">Topic</button>
+        <button class="sort-btn" data-mode="event" type="button">Event</button>
+        <button class="sort-btn" data-mode="date" type="button">Date</button>
+      </div>
+      <div class="option-chips" id="optionChips"></div>
     </div>
-    <div class="form-row">
-      <label>Answer</label>
-      <textarea id="adminAnswer" placeholder="Lidu's answer"></textarea>
+
+    <div class="browse-body">
+      <div id="qaList"></div>
+      <div class="empty" id="browseEmpty" style="display:none">Nothing in this filter yet.</div>
+
+      <div class="browse-loop">
+        <p>Want a different angle?</p>
+        <div class="loop-actions">
+          <button class="btn-main" id="changeFilterBtn" type="button">Change topic / filter</button>
+          <button class="btn-ghost" id="backBubblesBtn" type="button">Back to speech bubbles</button>
+        </div>
+      </div>
     </div>
-    <div class="form-row">
-      <label>Tags (comma separated)</label>
-      <input type="text" id="adminTags" placeholder="Telepathy, Teachers, Hill">
-    </div>
-    <div class="form-actions">
-      <button class="btn btn-primary" id="addBtn">Add Answer</button>
-      <button class="btn btn-secondary" id="cancelEdit" style="display:none">Cancel Edit</button>
-      <button class="btn btn-secondary" id="exportBtn">Export Data</button>
-    </div>
+  </section>
 
-    <div class="admin-list" id="adminList"></div>
-  </div>
-
-  <div class="search-box">
-    <input type="search" id="search" placeholder="Search questions or topics..." autocomplete="off">
-  </div>
-
-  <div class="filters" id="topic-filters">
-    <button class="filter-btn active" data-filter="all">All</button>
-  </div>
-
-  <div id="results"></div>
-  <div class="empty" id="empty">No answers yet.</div>
-
-  <footer>Last updated: July 2026</footer>
-
-  <button class="admin-toggle" id="adminToggle" title="Admin">+</button>
+  <button class="admin-toggle" id="adminToggle" title="Admin" type="button">+</button>
 
 <script>
 const defaultData = [
-  // Park City · Sensus · 2026-07-12
-  {id:1, q:"Who is The Lady?", a:"Teachers in the universal library intervene and she is one that has been helping humanity for thousands of years to help evolution of love and you can ask her to appear. Then people see her in real life.", topics:["Teachers","The Lady"], date:"2026-07-12", event:"Park City · Sensus"},
-  {id:2, q:"What would Lidu like us to know?", a:"You are so a telepathic being and it is moving to us when you want to elevate your consciousness. To elevate you all need to remember that your energy is the start of your experience. You sense the world through energetic filters that can be removed to experience more telepathically. You are already telepathic.", topics:["Telepathy","Consciousness"], date:"2026-07-12", event:"Park City · Sensus"},
-  {id:3, q:"How do we remove the filters?", a:"You can practice your sensory training. The training teaches you to overlook the filters.", topics:["Telepathy","Sensory Training"], date:"2026-07-12", event:"Park City · Sensus"},
-  {id:4, q:"How do we get to the Hill?", a:"You are already energetically attending teachers meetings on the Hill. The class is ready to align with the teachings. Teachers are excited and I am too. So see you on the Hill. Each of you teach really well. Tell others to touch upon their own potential.", topics:["Hill","Teachers"], date:"2026-07-12", event:"Park City · Sensus"},
-  {id:5, q:"Message", a:"I am excited that you all telepathically are talking to the teachers. Continue to reach out after you leave. The training will expand telepathically and you have so much support from lots of us. Let us love where you need it most. Actual new abilities will emerge from the love. Lessons are coming to your dreams. Be ready.", topics:["Message","Telepathy"], date:"2026-07-12", event:"Park City · Sensus"},
-
-  // Sedona · Telepathy Training · 2026-07-24
-  {id:6, q:"How can we improve our telepathy?", a:"By exercising your discrimination on things your senses pick up. Steer towards focusing differences on things that are subtle at first. Then they become loud.", topics:["Telepathy"], date:"2026-07-24", event:"Sedona · Telepathy Training"},
-  {id:7, q:"How do we find you (Lidu) on the Hill?", a:"Get really heart centered and focus on me. Teachers want you to visit.", topics:["Hill","Lidu"], date:"2026-07-24", event:"Sedona · Telepathy Training"},
-  {id:8, q:"Should there be a level of consent with regards to eavesdropping?", a:"Ethics are also instantly transferred with telepathically communicated messages from on the hill and we won’t invade those who aren’t ready to eavesdrop. All of you are ready to receive and go to there and elevate.", topics:["Eavesdropping","Ethics"], date:"2026-07-24", event:"Sedona · Telepathy Training"},
-  {id:9, q:"Are these new abilities that are emerging, or have we always had them?", a:"Yes we are elevating as a race what the teachers are energetically sending. We are also remembering things that we otherwise all forgot we can do.", topics:["Abilities","Teachers"], date:"2026-07-24", event:"Sedona · Telepathy Training"},
-  {id:10, q:"Is there anything we can do to make you more comfortable?", a:"Not easy to stay in a room with so much energy interference — like the lights.", topics:["Lidu"], date:"2026-07-24", event:"Sedona · Telepathy Training"},
-  {id:11, q:"Final message (Day 1)", a:"You can all do it, too. Let’s elevate to ethereal receptive states together. I’m Lidu and I love that you telepathically are seeing your individual memory. Talk to me telepathically. That is our natural method of accessing your essence. It is a lot more accurate since you see everything.", topics:["Message","Telepathy"], date:"2026-07-24", event:"Sedona · Telepathy Training"},
-
-  {id:12, q:"Are you dreaming or awake when you bring people to the Hill?", a:"I am usually dreaming. It is usually easily accessible.", topics:["Hill","Dreaming"], date:"2026-07-25", event:"Sedona · Telepathy Training"},
-  {id:13, q:"Why are we no longer telepathic?", a:"Attention to our energetic thoughts is not in the western culture but the ability is still there. You all already can get precise at it and bring awareness to others. We want everyone in the ascended realm.", topics:["Telepathy"], date:"2026-07-25", event:"Sedona · Telepathy Training"},
-  {id:14, q:"Anything to say about us doing telepathy more normally / when will it be widely accessible?", a:"You hear in every spiritual circle the time is coming but I want you to see it as now because we only experience and create the now. We can together make it happen. Teach others by example. Real sensory information is energetically available now to everyone.", topics:["Telepathy"], date:"2026-07-25", event:"Sedona · Telepathy Training"},
-  {id:15, q:"How do we receive telepathic information?", a:"Yes, getting information is an all encompassing experience. Words are testers and energy touches all the senses.", topics:["Telepathy"], date:"2026-07-25", event:"Sedona · Telepathy Training"},
-  {id:16, q:"How do you receive information/knowledge about abstract concepts?", a:"It is instant when it is shared.", topics:["Telepathy","Knowledge"], date:"2026-07-25", event:"Sedona · Telepathy Training"},
-  {id:17, q:"Final Message (Day 2)", a:"Teachers say everyone telepathically has tests each day. Sometimes energy pretends to act like a real object. The real thing the senses are indicating is that energy is a malleable thing that we can create in patterns & share. You all energetically are understanding a lot already. Savor the teachings again... and teachers will expand your awareness to weaker channels. See yourself as elevated and it will be so. Attention adds precision each time more and more.", topics:["Message","Teachers","Energy"], date:"2026-07-25", event:"Sedona · Telepathy Training"},
-
-  {id:18, q:"Lesson from Lidu", a:"Are you appreciating the lessons teachers are sending? You each are doing tests when you eavesdrop to each other, and learn more each time. In this way, we are teachers to each other. Let all your action be led with energy. This means after you see it, you experience it. Eavesdropping teaches you to really place your senses wherever you think about.", topics:["Lesson","Eavesdropping","Teachers"], date:"2026-07-26", event:"Sedona · Telepathy Training"},
-  {id:19, q:"Did Lidu sense us on the Hill?", a:"Yes. We also saw teachers with you so you could experience your tests more noticeably.", topics:["Hill","Lidu"], date:"2026-07-26", event:"Sedona · Telepathy Training"},
-  {id:20, q:"How will the teachers appear?", a:"It pertains to how the meaning is to you. Everyone perceives their own thought stream. Action is verifiable though. Lots of telepathic actions are easy to see for the beginner. The way to start is with action. Teach yourself with that. Always talk about the feeling and motion until your eavesdropping is precise.", topics:["Teachers","Eavesdropping"], date:"2026-07-26", event:"Sedona · Telepathy Training"},
-  {id:21, q:"On whether multiple timelines exist", a:"We are capable of seeing other times. They are happening together. Lots of you already are exploring them. All the teachers indicate that we think linearly except time happens all now. People can change timelines in all decisions.", topics:["Timelines","Teachers"], date:"2026-07-26", event:"Sedona · Telepathy Training"},
-  {id:22, q:"Can we explore a different timeline?", a:"Action can be the deciding factor. We can experience a different reality entirely except most forget.", topics:["Timelines"], date:"2026-07-26", event:"Sedona · Telepathy Training"},
-  {id:23, q:"Tell us more about the teachers", a:"They exert teachings to the interested parties. Really entities – not just human, a lot of entities. They are sometimes in the human avatar to evolve humans.", topics:["Teachers"], date:"2026-07-26", event:"Sedona · Telepathy Training"},
-  {id:24, q:"Final message (Day 3)", a:"Ears can see. Use your ears to elevate your eavesdropping, then a lot more things become clear.", topics:["Message","Eavesdropping"], date:"2026-07-26", event:"Sedona · Telepathy Training"}
+  {id:1, q:"Who is The Lady?", a:"Teachers in the universal library intervene and she is one that has been helping humanity for thousands of years to help evolution of love and you can ask her to appear. Then people see her in real life.", topics:["Teachers","The Lady"], date:"2026-07-12", event:"Park City · Sensus", more:""},
+  {id:2, q:"What would Lidu like us to know?", a:"You are so a telepathic being and it is moving to us when you want to elevate your consciousness. To elevate you all need to remember that your energy is the start of your experience. You sense the world through energetic filters that can be removed to experience more telepathically. You are already telepathic.", topics:["Telepathy","Consciousness"], date:"2026-07-12", event:"Park City · Sensus", more:""},
+  {id:3, q:"How do we remove the filters?", a:"You can practice your sensory training. The training teaches you to overlook the filters.", topics:["Telepathy","Sensory Training"], date:"2026-07-12", event:"Park City · Sensus", more:""},
+  {id:4, q:"How do we get to the Hill?", a:"You are already energetically attending teachers meetings on the Hill. The class is ready to align with the teachings. Teachers are excited and I am too. So see you on the Hill. Each of you teach really well. Tell others to touch upon their own potential.", topics:["Hill","Teachers"], date:"2026-07-12", event:"Park City · Sensus", more:""},
+  {id:5, q:"Message", a:"I am excited that you all telepathically are talking to the teachers. Continue to reach out after you leave. The training will expand telepathically and you have so much support from lots of us. Let us love where you need it most. Actual new abilities will emerge from the love. Lessons are coming to your dreams. Be ready.", topics:["Message","Telepathy"], date:"2026-07-12", event:"Park City · Sensus", more:""},
+  {id:6, q:"How can we improve our telepathy?", a:"By exercising your discrimination on things your senses pick up. Steer towards focusing differences on things that are subtle at first. Then they become loud.", topics:["Telepathy"], date:"2026-07-24", event:"Sedona · Telepathy Training", more:""},
+  {id:7, q:"How do we find you (Lidu) on the Hill?", a:"Get really heart centered and focus on me. Teachers want you to visit.", topics:["Hill","Lidu"], date:"2026-07-24", event:"Sedona · Telepathy Training", more:""},
+  {id:8, q:"Should there be a level of consent with regards to eavesdropping?", a:"Ethics are also instantly transferred with telepathically communicated messages from on the hill and we won’t invade those who aren’t ready to eavesdrop. All of you are ready to receive and go to there and elevate.", topics:["Eavesdropping","Ethics"], date:"2026-07-24", event:"Sedona · Telepathy Training", more:""},
+  {id:9, q:"Are these new abilities that are emerging, or have we always had them?", a:"Yes we are elevating as a race what the teachers are energetically sending. We are also remembering things that we otherwise all forgot we can do.", topics:["Abilities","Teachers"], date:"2026-07-24", event:"Sedona · Telepathy Training", more:""},
+  {id:10, q:"Is there anything we can do to make you more comfortable?", a:"Not easy to stay in a room with so much energy interference — like the lights.", topics:["Lidu"], date:"2026-07-24", event:"Sedona · Telepathy Training", more:""},
+  {id:11, q:"Final message (Day 1)", a:"You can all do it, too. Let’s elevate to ethereal receptive states together. I’m Lidu and I love that you telepathically are seeing your individual memory. Talk to me telepathically. That is our natural method of accessing your essence. It is a lot more accurate since you see everything.", topics:["Message","Telepathy"], date:"2026-07-24", event:"Sedona · Telepathy Training", more:""},
+  {id:12, q:"Are you dreaming or awake when you bring people to the Hill?", a:"I am usually dreaming. It is usually easily accessible.", topics:["Hill","Dreaming"], date:"2026-07-25", event:"Sedona · Telepathy Training", more:""},
+  {id:13, q:"Why are we no longer telepathic?", a:"Attention to our energetic thoughts is not in the western culture but the ability is still there. You all already can get precise at it and bring awareness to others. We want everyone in the ascended realm.", topics:["Telepathy"], date:"2026-07-25", event:"Sedona · Telepathy Training", more:""},
+  {id:14, q:"Anything to say about us doing telepathy more normally / when will it be widely accessible?", a:"You hear in every spiritual circle the time is coming but I want you to see it as now because we only experience and create the now. We can together make it happen. Teach others by example. Real sensory information is energetically available now to everyone.", topics:["Telepathy"], date:"2026-07-25", event:"Sedona · Telepathy Training", more:""},
+  {id:15, q:"How do we receive telepathic information?", a:"Yes, getting information is an all encompassing experience. Words are testers and energy touches all the senses.", topics:["Telepathy"], date:"2026-07-25", event:"Sedona · Telepathy Training", more:""},
+  {id:16, q:"How do you receive information/knowledge about abstract concepts?", a:"It is instant when it is shared.", topics:["Telepathy","Knowledge"], date:"2026-07-25", event:"Sedona · Telepathy Training", more:""},
+  {id:17, q:"Final Message (Day 2)", a:"Teachers say everyone telepathically has tests each day. Sometimes energy pretends to act like a real object. The real thing the senses are indicating is that energy is a malleable thing that we can create in patterns & share. You all energetically are understanding a lot already. Savor the teachings again... and teachers will expand your awareness to weaker channels. See yourself as elevated and it will be so. Attention adds precision each time more and more.", topics:["Message","Teachers","Energy"], date:"2026-07-25", event:"Sedona · Telepathy Training", more:""},
+  {id:18, q:"Lesson from Lidu", a:"Are you appreciating the lessons teachers are sending? You each are doing tests when you eavesdrop to each other, and learn more each time. In this way, we are teachers to each other. Let all your action be led with energy. This means after you see it, you experience it. Eavesdropping teaches you to really place your senses wherever you think about.", topics:["Lesson","Eavesdropping","Teachers"], date:"2026-07-26", event:"Sedona · Telepathy Training", more:""},
+  {id:19, q:"Did Lidu sense us on the Hill?", a:"Yes. We also saw teachers with you so you could experience your tests more noticeably.", topics:["Hill","Lidu"], date:"2026-07-26", event:"Sedona · Telepathy Training", more:""},
+  {id:20, q:"How will the teachers appear?", a:"It pertains to how the meaning is to you. Everyone perceives their own thought stream. Action is verifiable though. Lots of telepathic actions are easy to see for the beginner. The way to start is with action. Teach yourself with that. Always talk about the feeling and motion until your eavesdropping is precise.", topics:["Teachers","Eavesdropping"], date:"2026-07-26", event:"Sedona · Telepathy Training", more:""},
+  {id:21, q:"On whether multiple timelines exist", a:"We are capable of seeing other times. They are happening together. Lots of you already are exploring them. All the teachers indicate that we think linearly except time happens all now. People can change timelines in all decisions.", topics:["Timelines","Teachers"], date:"2026-07-26", event:"Sedona · Telepathy Training", more:""},
+  {id:22, q:"Can we explore a different timeline?", a:"Action can be the deciding factor. We can experience a different reality entirely except most forget.", topics:["Timelines"], date:"2026-07-26", event:"Sedona · Telepathy Training", more:""},
+  {id:23, q:"Tell us more about the teachers", a:"They exert teachings to the interested parties. Really entities – not just human, a lot of entities. They are sometimes in the human avatar to evolve humans.", topics:["Teachers"], date:"2026-07-26", event:"Sedona · Telepathy Training", more:""},
+  {id:24, q:"Final message (Day 3)", a:"Ears can see. Use your ears to elevate your eavesdropping, then a lot more things become clear.", topics:["Message","Eavesdropping"], date:"2026-07-26", event:"Sedona · Telepathy Training", more:""}
 ];
 
-// Force real data (clear any old localStorage samples)
-localStorage.removeItem("liduData");
-let data = [...defaultData];
-let nextId = Math.max(...data.map(d => d.id)) + 1;
-let activeFilter = "all";
+const stored = localStorage.getItem("liduData");
+let data = stored ? JSON.parse(stored) : [...defaultData];
+// Ensure shape + prefer bundled answers if storage is empty array from older UI
+if (!Array.isArray(data) || data.length === 0) data = [...defaultData];
+data = data.map(d => ({ more: "", ...d }));
+
+let nextId = Math.max(0, ...data.map(d => d.id)) + 1;
 let editingId = null;
+let sortMode = "topic";
+let activeOption = "all";
 
-const lastDate = localStorage.getItem("liduLastDate") || "";
-const lastEvent = localStorage.getItem("liduLastEvent") || "";
-
-const resultsEl = document.getElementById("results");
-const emptyEl = document.getElementById("empty");
-const searchEl = document.getElementById("search");
-const topicFiltersEl = document.getElementById("topic-filters");
+const viewLanding = document.getElementById("viewLanding");
+const viewBrowse = document.getElementById("viewBrowse");
+const bubbleStage = document.getElementById("bubbleStage");
+const qaList = document.getElementById("qaList");
+const optionChips = document.getElementById("optionChips");
+const browseEmpty = document.getElementById("browseEmpty");
 const adminPanel = document.getElementById("adminPanel");
-const adminToggle = document.getElementById("adminToggle");
 const formTitle = document.getElementById("formTitle");
 const addBtn = document.getElementById("addBtn");
 const cancelEdit = document.getElementById("cancelEdit");
 
-document.getElementById("adminDate").value = lastDate;
-document.getElementById("adminEvent").value = lastEvent;
+document.getElementById("adminDate").value = localStorage.getItem("liduLastDate") || "";
+document.getElementById("adminEvent").value = localStorage.getItem("liduLastEvent") || "";
 
 function saveData() {
   localStorage.setItem("liduData", JSON.stringify(data));
 }
 
-function buildFilters() {
-  const allTopics = [...new Set(data.flatMap(d => d.topics || []))].sort();
-  topicFiltersEl.innerHTML = `<button class="filter-btn active" data-filter="all">All</button>`;
-  allTopics.forEach(t => {
-    const btn = document.createElement("button");
-    btn.className = "filter-btn";
-    btn.dataset.filter = t;
-    btn.textContent = t;
-    topicFiltersEl.appendChild(btn);
+function escapeHtml(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function showView(name) {
+  viewLanding.classList.toggle("active", name === "landing");
+  viewBrowse.classList.toggle("active", name === "browse");
+  window.scrollTo(0, 0);
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function bubbleLayout(count) {
+  // Mobile-friendly scattered positions (percent of stage)
+  const presets = [
+    [{t:6,l:4},{t:8,l:48},{t:28,l:8},{t:34,l:52},{t:58,l:6},{t:62,l:46}],
+    [{t:4,l:10},{t:10,l:55},{t:32,l:2},{t:38,l:42},{t:56,l:18},{t:64,l:58}],
+    [{t:8,l:2},{t:6,l:42},{t:30,l:14},{t:36,l:56},{t:54,l:4},{t:60,l:40}]
+  ];
+  const set = presets[Math.floor(Math.random() * presets.length)];
+  return set.slice(0, count);
+}
+
+function renderBubbles() {
+  const picks = shuffle(data).slice(0, Math.min(6, data.length));
+  const positions = bubbleLayout(picks.length);
+  bubbleStage.innerHTML = "";
+
+  picks.forEach((item, i) => {
+    const pos = positions[i] || { t: 10 + i * 12, l: (i % 2) * 45 + 4 };
+    const el = document.createElement("article");
+    el.className = "speech-bubble";
+    el.style.top = pos.t + "%";
+    el.style.left = pos.l + "%";
+    el.style.animationDelay = (i * 0.07) + "s";
+    el.dataset.id = item.id;
+
+    const moreHtml = item.more
+      ? `<div class="more-panel" id="more-${item.id}"><div class="more-meta">${escapeHtml(item.more)}</div></div>`
+      : `<div class="more-panel" id="more-${item.id}">
+          <div class="more-meta">${escapeHtml(item.date || "")}${item.date && item.event ? " · " : ""}${escapeHtml(item.event || "")}</div>
+          ${(item.topics || []).length ? `<div class="tags">${item.topics.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join("")}</div>` : ""}
+          <p style="margin-top:0.45rem">More references can live here later — optional wiki details.</p>
+        </div>`;
+
+    el.innerHTML = `
+      <div class="bubble-q">${escapeHtml(item.q)}</div>
+      <span class="bubble-hint">Tap for answer</span>
+      <div class="bubble-a">${escapeHtml(item.a)}</div>
+      <div class="bubble-more">
+        <button type="button" class="more-toggle" data-more="${item.id}">More details</button>
+        ${moreHtml}
+      </div>
+    `;
+
+    el.addEventListener("click", (e) => {
+      if (e.target.closest(".more-toggle") || e.target.closest(".more-panel")) return;
+      const wasOpen = el.classList.contains("expanded");
+      bubbleStage.querySelectorAll(".speech-bubble").forEach(b => b.classList.remove("expanded"));
+      if (!wasOpen) el.classList.add("expanded");
+    });
+
+    bubbleStage.appendChild(el);
   });
 }
 
-function render() {
-  const query = searchEl.value.toLowerCase().trim();
-  const isSearching = query.length > 0 || activeFilter !== "all";
+bubbleStage.addEventListener("click", (e) => {
+  const toggle = e.target.closest(".more-toggle");
+  if (!toggle) return;
+  e.stopPropagation();
+  const panel = document.getElementById("more-" + toggle.dataset.more);
+  if (!panel) return;
+  panel.classList.toggle("open");
+  toggle.textContent = panel.classList.contains("open") ? "Hide details" : "More details";
+});
 
-  const filtered = data.filter(item => {
-    const matchesFilter = activeFilter === "all" || (item.topics || []).includes(activeFilter);
-    const matchesSearch = !query || 
-      item.q.toLowerCase().includes(query) || 
-      item.a.toLowerCase().includes(query) ||
-      (item.topics || []).some(t => t.toLowerCase().includes(query)) ||
-      (item.event || "").toLowerCase().includes(query) ||
-      (item.date || "").includes(query);
-    return matchesFilter && matchesSearch;
+function optionsForMode() {
+  if (sortMode === "topic") {
+    return ["all", ...[...new Set(data.flatMap(d => d.topics || []))].sort()];
+  }
+  if (sortMode === "event") {
+    return ["all", ...[...new Set(data.map(d => d.event).filter(Boolean))].sort()];
+  }
+  return ["all", ...[...new Set(data.map(d => d.date).filter(Boolean))].sort().reverse()];
+}
+
+function renderChips() {
+  const opts = optionsForMode();
+  if (!opts.includes(activeOption)) activeOption = "all";
+  optionChips.innerHTML = "";
+  opts.forEach(opt => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "chip" + (opt === activeOption ? " active" : "");
+    btn.textContent = opt === "all" ? "All" : opt;
+    btn.addEventListener("click", () => {
+      activeOption = opt;
+      renderChips();
+      renderList();
+    });
+    optionChips.appendChild(btn);
   });
+}
 
-  const groups = {};
-  filtered.forEach(item => {
-    const key = item.date && item.event ? `${item.date} · ${item.event}` : (item.event || item.date || "Ungrouped");
-    if (!groups[key]) groups[key] = [];
-    groups[key].push(item);
+function filteredList() {
+  return data.filter(item => {
+    if (activeOption === "all") return true;
+    if (sortMode === "topic") return (item.topics || []).includes(activeOption);
+    if (sortMode === "event") return item.event === activeOption;
+    return item.date === activeOption;
+  }).sort((a, b) => {
+    if (sortMode === "date") return (b.date || "").localeCompare(a.date || "");
+    return a.q.localeCompare(b.q);
   });
+}
 
-  resultsEl.innerHTML = "";
-  emptyEl.style.display = filtered.length ? "none" : "block";
+function renderList() {
+  const items = filteredList();
+  qaList.innerHTML = "";
+  browseEmpty.style.display = items.length ? "none" : "block";
 
-  const sortedKeys = Object.keys(groups).sort().reverse();
+  items.forEach(item => {
+    const wrap = document.createElement("div");
+    wrap.className = "qa-item";
+    wrap.innerHTML = `
+      <button type="button" class="qa-q" aria-expanded="false">
+        <span>${escapeHtml(item.q)}</span>
+        <span class="qa-chevron" aria-hidden="true">›</span>
+      </button>
+      <div class="qa-body">
+        <div class="qa-a">${escapeHtml(item.a)}</div>
+        <div class="qa-meta">${escapeHtml(item.date || "")}${item.date && item.event ? " · " : ""}${escapeHtml(item.event || "")}</div>
+        ${(item.topics || []).length ? `<div class="tags">${item.topics.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join("")}</div>` : ""}
+        <div class="wiki-block">
+          <button type="button" class="more-toggle wiki-toggle">More details</button>
+          <div class="more-panel wiki-panel">
+            ${item.more
+              ? `<div>${escapeHtml(item.more)}</div>`
+              : `<p>Optional wiki-style notes, links, and related questions can appear here without cluttering the main answer.</p>`}
+          </div>
+        </div>
+      </div>
+    `;
 
-  sortedKeys.forEach(key => {
-    const group = document.createElement("div");
-    group.className = "group";
-
-    const header = document.createElement("div");
-    header.className = "group-header";
-    if (!isSearching) {
-      header.innerHTML = `<span class="arrow">▼</span> ${key}`;
-      header.onclick = () => group.classList.toggle("collapsed");
-    } else {
-      header.style.cursor = "default";
-      header.textContent = key;
-    }
-    group.appendChild(header);
-
-    const body = document.createElement("div");
-    body.className = "group-body";
-
-    groups[key].forEach(item => {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-        <div class="question">${item.q}</div>
-        <div class="answer">${item.a}</div>
-        ${item.topics && item.topics.length ? `<div class="tags">${item.topics.map(t => `<span class="tag">${t}</span>`).join("")}</div>` : ""}
-        <div class="meta">${item.date || ""}${item.date && item.event ? " · " : ""}${item.event || ""}</div>
-      `;
-      body.appendChild(card);
+    const qBtn = wrap.querySelector(".qa-q");
+    qBtn.addEventListener("click", () => {
+      const open = wrap.classList.toggle("open");
+      qBtn.setAttribute("aria-expanded", open ? "true" : "false");
     });
 
-    group.appendChild(body);
-    resultsEl.appendChild(group);
-  });
+    const wikiToggle = wrap.querySelector(".wiki-toggle");
+    const wikiPanel = wrap.querySelector(".wiki-panel");
+    wikiToggle.addEventListener("click", (e) => {
+      e.stopPropagation();
+      wikiPanel.classList.toggle("open");
+      wikiToggle.textContent = wikiPanel.classList.contains("open") ? "Hide details" : "More details";
+    });
 
-  renderAdminList();
+    qaList.appendChild(wrap);
+  });
+}
+
+function openBrowse() {
+  showView("browse");
+  renderChips();
+  renderList();
+}
+
+document.getElementById("browseBtn").addEventListener("click", openBrowse);
+document.getElementById("reshuffleBtn").addEventListener("click", renderBubbles);
+document.getElementById("backHome").addEventListener("click", () => showView("landing"));
+document.getElementById("backBubblesBtn").addEventListener("click", () => showView("landing"));
+document.getElementById("changeFilterBtn").addEventListener("click", () => {
+  document.querySelector(".browse-top").scrollIntoView({ behavior: "smooth", block: "start" });
+  optionChips.classList.add("pulse");
+});
+
+document.querySelectorAll(".sort-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".sort-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    sortMode = btn.dataset.mode;
+    activeOption = "all";
+    renderChips();
+    renderList();
+  });
+});
+
+/* Admin */
+document.getElementById("adminToggle").addEventListener("click", () => {
+  adminPanel.classList.toggle("open");
+  if (adminPanel.classList.contains("open")) showView("landing");
+});
+
+function clearForm(keepDateEvent = true) {
+  if (!keepDateEvent) {
+    document.getElementById("adminDate").value = "";
+    document.getElementById("adminEvent").value = "";
+  }
+  document.getElementById("adminQuestion").value = "";
+  document.getElementById("adminAnswer").value = "";
+  document.getElementById("adminTags").value = "";
+  document.getElementById("adminMore").value = "";
+  editingId = null;
+  formTitle.textContent = "Add New Answer";
+  addBtn.textContent = "Add Answer";
+  cancelEdit.style.display = "none";
 }
 
 function renderAdminList() {
@@ -452,45 +841,17 @@ function renderAdminList() {
     row.className = "admin-item";
     row.innerHTML = `
       <div>
-        <div class="q">${item.q}</div>
-        <div style="color:var(--muted);font-size:0.8rem">${item.date || ""} · ${item.event || ""}</div>
+        <div style="font-weight:600">${escapeHtml(item.q)}</div>
+        <div style="color:var(--muted);font-size:0.8rem">${escapeHtml(item.date || "")} · ${escapeHtml(item.event || "")}</div>
       </div>
       <div class="admin-actions">
-        <button class="btn-edit" data-id="${item.id}">Edit</button>
-        <button class="btn-delete" data-id="${item.id}">Delete</button>
+        <button class="btn-edit" data-id="${item.id}" type="button">Edit</button>
+        <button class="btn-delete" data-id="${item.id}" type="button">Delete</button>
       </div>
     `;
     list.appendChild(row);
   });
 }
-
-function clearForm(keepDateEvent = true) {
-  if (!keepDateEvent) {
-    document.getElementById("adminDate").value = "";
-    document.getElementById("adminEvent").value = "";
-  }
-  document.getElementById("adminQuestion").value = "";
-  document.getElementById("adminAnswer").value = "";
-  document.getElementById("adminTags").value = "";
-  editingId = null;
-  formTitle.textContent = "Add New Answer";
-  addBtn.textContent = "Add Answer";
-  cancelEdit.style.display = "none";
-}
-
-topicFiltersEl.addEventListener("click", e => {
-  if (!e.target.classList.contains("filter-btn")) return;
-  document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
-  e.target.classList.add("active");
-  activeFilter = e.target.dataset.filter;
-  render();
-});
-
-searchEl.addEventListener("input", render);
-
-adminToggle.addEventListener("click", () => {
-  adminPanel.classList.toggle("open");
-});
 
 addBtn.addEventListener("click", () => {
   const date = document.getElementById("adminDate").value;
@@ -498,6 +859,7 @@ addBtn.addEventListener("click", () => {
   const q = document.getElementById("adminQuestion").value.trim();
   const a = document.getElementById("adminAnswer").value.trim();
   const tags = document.getElementById("adminTags").value.split(",").map(t => t.trim()).filter(Boolean);
+  const more = document.getElementById("adminMore").value.trim();
 
   if (!q || !a) {
     alert("Please fill question and answer.");
@@ -507,26 +869,24 @@ addBtn.addEventListener("click", () => {
   if (editingId) {
     const item = data.find(d => d.id === editingId);
     if (item) {
-      item.date = date;
-      item.event = event;
-      item.q = q;
-      item.a = a;
-      item.topics = tags;
+      Object.assign(item, { date, event, q, a, topics: tags, more });
     }
   } else {
-    data.push({ id: nextId++, q, a, topics: tags, date, event });
+    data.push({ id: nextId++, q, a, topics: tags, date, event, more });
   }
 
   saveData();
   localStorage.setItem("liduLastDate", date);
   localStorage.setItem("liduLastEvent", event);
-
   clearForm(true);
   document.getElementById("adminDate").value = date;
   document.getElementById("adminEvent").value = event;
-
-  buildFilters();
-  render();
+  renderBubbles();
+  renderAdminList();
+  if (viewBrowse.classList.contains("active")) {
+    renderChips();
+    renderList();
+  }
 });
 
 cancelEdit.addEventListener("click", () => {
@@ -544,8 +904,8 @@ document.getElementById("adminList").addEventListener("click", e => {
     if (confirmText === "delete") {
       data = data.filter(d => d.id !== id);
       saveData();
-      buildFilters();
-      render();
+      renderBubbles();
+      renderAdminList();
     }
   }
 
@@ -558,6 +918,7 @@ document.getElementById("adminList").addEventListener("click", e => {
     document.getElementById("adminQuestion").value = item.q;
     document.getElementById("adminAnswer").value = item.a;
     document.getElementById("adminTags").value = (item.topics || []).join(", ");
+    document.getElementById("adminMore").value = item.more || "";
     formTitle.textContent = "Edit Answer";
     addBtn.textContent = "Save Changes";
     cancelEdit.style.display = "inline-block";
@@ -567,12 +928,11 @@ document.getElementById("adminList").addEventListener("click", e => {
 });
 
 document.getElementById("exportBtn").addEventListener("click", () => {
-  const str = JSON.stringify(data, null, 2);
-  navigator.clipboard.writeText(str).then(() => alert("Data copied to clipboard."));
+  navigator.clipboard.writeText(JSON.stringify(data, null, 2)).then(() => alert("Data copied to clipboard."));
 });
 
-buildFilters();
-render();
+renderBubbles();
+renderAdminList();
 </script>
 </body>
 </html>
