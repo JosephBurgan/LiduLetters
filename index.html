@@ -995,7 +995,7 @@
   <section class="view" id="viewAdmin" aria-label="Admin">
     <div class="admin-shell">
       <h1>Admin</h1>
-      <p class="sub">Add and edit letterboard entries. Public visitors never see this screen. Saves publish to GitHub so phones and laptops share one list.</p>
+      <p class="sub">Helpers can add entries without a token if they are GitHub collaborators on this repo and logged into GitHub. A token is only for instant publish from this device.</p>
 
       <div class="admin-panel-view active" id="adminMenu">
         <div class="admin-menu">
@@ -1004,8 +1004,8 @@
           <button class="btn-ghost" type="button" id="adminExit">Back to site</button>
         </div>
         <div class="admin-card" style="margin-top:1.1rem">
-          <div class="form-group-title">Publish to site</div>
-          <p class="sub">Create a GitHub fine-grained token with <strong>Contents: Read and write</strong> on <code>JosephBurgan/LiduLetters</code>. Stored only on this device.</p>
+          <div class="form-group-title">Instant publish (optional)</div>
+          <p class="sub">Only needed on the computer that should write straight to the repo. Helpers do not paste this — they Submit a GitHub issue instead. Token stays on this device.</p>
           <div class="form-row">
             <label for="adminToken">GitHub token</label>
             <input type="password" id="adminToken" autocomplete="off">
@@ -1071,7 +1071,7 @@
             </div>
           </div>
           <div class="form-actions">
-            <button class="btn btn-primary" id="saveBtn" type="button">Save &amp; publish</button>
+            <button class="btn btn-primary" id="saveBtn" type="button">Save</button>
             <button class="btn btn-secondary" id="cancelEdit" type="button" style="display:none">Cancel</button>
           </div>
         </div>
@@ -1845,15 +1845,43 @@ document.getElementById("editList").addEventListener("click", (e) => {
   }
 });
 
+function buildEntryFromForm() {
+  return {
+    q: document.getElementById("adminQuestion").value.trim(),
+    a: document.getElementById("adminAnswer").value.trim(),
+    date: document.getElementById("adminDate").value,
+    event: document.getElementById("adminEvent").value.trim(),
+    location: document.getElementById("adminLocation").value.trim(),
+    topics: document.getElementById("adminTags").value.split(",").map(t => t.trim()).filter(Boolean),
+    more: document.getElementById("adminMore").value.trim(),
+    home: document.getElementById("adminHome").checked
+  };
+}
+
+function submitEntryAsGithubIssue(entry) {
+  const title = "Q&A: " + entry.q.slice(0, 80);
+  const human = [
+    "**Question:** " + entry.q,
+    "",
+    "**Answer:** " + entry.a,
+    "",
+    "**Date:** " + (entry.date || ""),
+    "**Event:** " + (entry.event || ""),
+    "**Location:** " + (entry.location || ""),
+    "**Tags:** " + (entry.topics || []).join(", "),
+    "**Home bubbles:** " + (entry.home ? "yes" : "no"),
+    entry.more ? ("**More:** " + entry.more) : ""
+  ].filter(Boolean).join("\n");
+  const body = human + "\n\n<!-- LIDU_ENTRY\n" + JSON.stringify(entry, null, 2) + "\nLIDU_ENTRY -->";
+  const url = "https://github.com/" + GH_OWNER + "/" + GH_REPO + "/issues/new?title=" +
+    encodeURIComponent(title) + "&body=" + encodeURIComponent(body);
+  window.open(url, "_blank", "noopener");
+}
+
 saveBtn.addEventListener("click", () => {
-  const event = document.getElementById("adminEvent").value.trim();
-  const q = document.getElementById("adminQuestion").value.trim();
-  const a = document.getElementById("adminAnswer").value.trim();
-  const date = document.getElementById("adminDate").value;
-  const locationName = document.getElementById("adminLocation").value.trim();
-  const tags = document.getElementById("adminTags").value.split(",").map(t => t.trim()).filter(Boolean);
-  const more = document.getElementById("adminMore").value.trim();
-  const home = document.getElementById("adminHome").checked;
+  const entry = buildEntryFromForm();
+  const q = entry.q;
+  const a = entry.a;
 
   if (!q || !a) {
     alert("Please fill question and answer.");
@@ -1861,22 +1889,41 @@ saveBtn.addEventListener("click", () => {
   }
 
   if (editingId) {
+    if (!getGithubToken()) {
+      alert("Editing an existing entry needs the GitHub token on this device. Helpers without a token can only add new entries.");
+      return;
+    }
     const item = data.find(d => d.id === editingId);
-    if (item) Object.assign(item, { event, q, a, date, location: locationName, topics: tags, more, home });
-  } else {
-    data.push({ id: nextId++, q, a, topics: tags, date, event, location: locationName, more, home });
+    if (item) Object.assign(item, entry);
+    saveData();
+    clearForm();
+    showAdminPanel("adminMenu");
+    renderBubbles();
+    publishData().then(ok => {
+      alert(ok
+        ? "Saved and published. Phones update after GitHub Pages refreshes."
+        : "Saved on this device only. Publish failed — check the token.");
+    });
+    return;
   }
 
-  saveData();
-  clearForm();
-  showAdminPanel("adminMenu");
-  renderBubbles();
-  publishData().then(ok => {
-    if (ok) alert("Saved and published. The live site (including phones) updates after GitHub Pages refreshes — usually under a minute.");
-    else alert("Saved on this device. Add a GitHub token on the Admin menu and click Publish now so other devices can see it.");
-  }).catch(err => {
-    alert("Saved on this device, but publish failed: " + (err && err.message ? err.message : err));
-  });
+  if (getGithubToken()) {
+    data.push({ id: nextId++, ...entry });
+    saveData();
+    clearForm();
+    showAdminPanel("adminMenu");
+    renderBubbles();
+    publishData().then(ok => {
+      alert(ok
+        ? "Saved and published. Phones update after GitHub Pages refreshes."
+        : "Saved on this device only. Publish failed — check the token.");
+    });
+    return;
+  }
+
+  // No token: collaborators submit via GitHub issue; an Action publishes it.
+  submitEntryAsGithubIssue(entry);
+  alert("A GitHub issue draft opened. Log in as a collaborator on LiduLetters and click Submit. It will go live automatically.");
 });
 
 document.getElementById("saveTokenBtn").addEventListener("click", () => {

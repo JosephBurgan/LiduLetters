@@ -83,7 +83,9 @@ Shareable live URL: https://josephburgan.github.io/LiduLetters/
 ## Data / publishing
 
 - Public list is **`data.json`** in the repo — not `localStorage` alone (that is per-browser, which is why a desktop save did not appear on a phone).
-- Admin **Save & publish** writes `data.json` via the GitHub Contents API using a token stored only on that device.
+- Do **not** embed a GitHub token in the public page so “anyone on `#admin`” can publish — that would let anyone rewrite the repo.
+- **Multiple helpers:** invite them as GitHub collaborators. Save without a token opens a GitHub issue; a workflow ingests it into `data.json` only if the author is OWNER/MEMBER/COLLABORATOR.
+- **Joseph’s desktop (optional):** token in this browser only → Save writes `data.json` immediately via the Contents API.
 - On load: fetch `data.json`, then merge any extra ids that exist only in this browser so unpublished desktop entries can still be published.
 - Token never belongs in the repo.
 

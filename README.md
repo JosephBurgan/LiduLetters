@@ -23,15 +23,26 @@ Public UI has no admin button. Open:
 
 `https://josephburgan.github.io/LiduLetters/#admin`
 
-Q&A lives in [`data.json`](./data.json) so every device loads the same list. Saving in admin **publishes** that file to GitHub (needs a token).
+Q&A lives in [`data.json`](./data.json) so every device loads the same list.
 
-### One-time token (so phones see new entries)
+### Multiple people adding entries (no shared token)
 
-1. GitHub → Settings → Developer settings → Personal access tokens → **Fine-grained token**
-2. Resource owner: your account; Repository: **LiduLetters only**
-3. Permissions: **Contents: Read and write**
-4. Paste it in Admin → Save token on this device (stays in this browser only)
-5. **Save & publish** on an entry, or **Publish now** to send unpublished local entries live
+Do **not** put the GitHub token in the website. Invite people as **collaborators** instead:
+
+1. [Invite collaborators](https://github.com/JosephBurgan/LiduLetters/settings/access)
+2. They open `#admin`, fill **Add entry**, hit **Save**
+3. GitHub opens an issue draft — they click **Submit**
+4. A GitHub Action appends `data.json` and the live site updates
+
+Only **OWNER / collaborator** issues are ingested (so random public issues cannot write the site).
+
+### Instant publish from one computer (optional token)
+
+For the machine that should write the repo directly (usually Joseph’s desktop):
+
+1. Fine-grained token, repo **LiduLetters only**, **Contents: Read and write**
+2. Admin → paste token → **Save token on this device**
+3. **Save** on an entry publishes immediately
 
 GitHub Pages can take a short minute to update.
 
