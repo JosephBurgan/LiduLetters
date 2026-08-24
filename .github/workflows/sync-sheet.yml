@@ -2,6 +2,11 @@ name: Sync Google Sheet
 
 on:
   workflow_dispatch:
+    inputs:
+      allow_shrink:
+        description: "Replace data.json even if the sheet has fewer rows (can delete letters)"
+        type: boolean
+        default: false
   schedule:
     - cron: "*/15 * * * *"
 
@@ -19,6 +24,8 @@ jobs:
           python-version: "3.12"
 
       - name: Pull sheet into data.json
+        env:
+          ALLOW_SHRINK: ${{ github.event.inputs.allow_shrink == 'true' && '1' || '' }}
         run: python scripts/sync_sheet.py
 
       - name: Commit if the list changed

@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+import os
 import re
 import urllib.request
 from pathlib import Path
@@ -116,6 +117,24 @@ def main() -> int:
     if not entries:
         print("Sheet had no complete question/answer rows — leaving data.json unchanged")
         return 0
+
+    existing = []
+    if OUT.exists():
+        try:
+            loaded = json.loads(OUT.read_text(encoding="utf-8"))
+            if isinstance(loaded, list):
+                existing = loaded
+        except json.JSONDecodeError:
+            existing = []
+
+    allow_shrink = os.environ.get("ALLOW_SHRINK", "").strip() in {"1", "true", "yes"}
+    if existing and len(entries) < len(existing) and not allow_shrink:
+        print(
+            f"Refusing to replace {len(existing)} data.json entries with {len(entries)} "
+            "from the sheet (that would drop letters). Import sheet-seed.csv into the "
+            "sheet first, or re-run the workflow with allow_shrink."
+        )
+        return 1
 
     OUT.write_text(json.dumps(entries, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"Wrote {len(entries)} entries to data.json")

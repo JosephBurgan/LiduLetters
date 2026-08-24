@@ -9,7 +9,7 @@ Mobile-first site for letterboard Q&A: speech-bubble home, browse by topic / eve
 
 **Design intent / feedback log:** see [`DESIGN-NOTES.md`](./DESIGN-NOTES.md)
 
-**Google Form + Sheet (for multiple people adding):** see [`GOOGLE-FORM.md`](./GOOGLE-FORM.md)
+**Google Form + Sheet (for multiple people adding):** see [`GOOGLE-FORM.md`](./GOOGLE-FORM.md). Seed the sheet from [`sheet-seed.csv`](./sheet-seed.csv) so the first sync does not drop existing letters.
 
 ## Local preview
 
