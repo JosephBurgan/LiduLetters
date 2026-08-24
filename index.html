@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#061018">
 <meta name="description" content="Lidu Letters — questions answered through letterboard">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta name="lidu-build" content="20260824b">
 <title>Lidu Letters</title>
 <style>
   :root {
@@ -43,6 +46,52 @@
 
   .view { display: none; min-height: 100dvh; flex-direction: column; }
   .view.active { display: flex; }
+  #viewLanding {
+    position: relative;
+    overflow: hidden;
+  }
+  #viewLanding > *:not(.letter-grid) {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* —— Subtle letterboard atmosphere —— */
+  .letter-grid {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    display: grid;
+    grid-template-columns: repeat(var(--letter-cols, 10), minmax(0, 1fr));
+    grid-auto-rows: minmax(0, 1fr);
+    gap: 0.2rem 0.15rem;
+    padding: 0.55rem 0.4rem;
+    pointer-events: none;
+    user-select: none;
+    overflow: hidden;
+  }
+  .letter-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif;
+    font-weight: 700;
+    font-size: clamp(0.7rem, 2.4vw, 0.95rem);
+    letter-spacing: 0.02em;
+    color: rgba(140, 190, 230, 0.07);
+    border-radius: 999px;
+    aspect-ratio: 1;
+    max-height: 2.4rem;
+    margin: auto;
+    width: 85%;
+    opacity: 1;
+    transition: opacity 2.4s ease, color 2.4s ease, transform 2.4s ease;
+    transform: scale(1);
+  }
+  .letter-cell.is-fading {
+    opacity: 0;
+    transform: scale(0.86);
+    color: rgba(155, 109, 255, 0.05);
+  }
 
   /* —— Landing —— */
   .landing-header {
@@ -679,6 +728,7 @@
   @media (prefers-reduced-motion: reduce) {
     .speech-bubble { animation: floatIn 0.4s ease both; }
     .bubble-anchor { transition-duration: 0.01ms; }
+    .letter-cell { transition: none; }
   }
 </style>
 </head>
@@ -686,6 +736,7 @@
 
   <!-- LANDING -->
   <section class="view active" id="viewLanding" aria-label="Featured questions">
+    <div class="letter-grid" id="letterGrid" aria-hidden="true"></div>
     <header class="landing-header">
       <h1>Lidu Letters</h1>
       <p>Tap a bubble to peek at an answer</p>
@@ -1409,9 +1460,72 @@ if (stored) {
   } catch (_) {}
 }
 
+/* —— Background letterboard —— */
+const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+let letterCells = [];
+let letterTimer = null;
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function randomLetter() {
+  return LETTERS[Math.floor(Math.random() * LETTERS.length)];
+}
+
+function buildLetterGrid() {
+  const grid = document.getElementById("letterGrid");
+  if (!grid) return;
+  const cols = Math.max(8, Math.min(14, Math.floor(window.innerWidth / 34)));
+  const rows = Math.max(12, Math.min(22, Math.floor(window.innerHeight / 38)));
+  grid.style.setProperty("--letter-cols", String(cols));
+  grid.innerHTML = "";
+  letterCells = [];
+  const total = cols * rows;
+  for (let i = 0; i < total; i++) {
+    const cell = document.createElement("span");
+    cell.className = "letter-cell";
+    cell.textContent = randomLetter();
+    // Slight staggered resting opacity via inline delay feel
+    if (Math.random() < 0.18) cell.style.opacity = "0.35";
+    grid.appendChild(cell);
+    letterCells.push(cell);
+  }
+}
+
+function pulseLetterCell(cell) {
+  if (!cell) return;
+  cell.classList.add("is-fading");
+  window.setTimeout(() => {
+    cell.textContent = randomLetter();
+    cell.classList.remove("is-fading");
+  }, 1200 + Math.random() * 600);
+}
+
+function startLetterAtmosphere() {
+  if (reduceMotion) {
+    buildLetterGrid();
+    return;
+  }
+  buildLetterGrid();
+  if (letterTimer) window.clearInterval(letterTimer);
+  letterTimer = window.setInterval(() => {
+    if (!viewLanding.classList.contains("active") || !letterCells.length) return;
+    const count = 1 + Math.floor(Math.random() * 3);
+    for (let i = 0; i < count; i++) {
+      const cell = letterCells[Math.floor(Math.random() * letterCells.length)];
+      pulseLetterCell(cell);
+    }
+  }, 1100);
+}
+
+let letterResizeTimer = null;
+window.addEventListener("resize", () => {
+  window.clearTimeout(letterResizeTimer);
+  letterResizeTimer = window.setTimeout(buildLetterGrid, 200);
+});
+
 routeFromHash();
 renderBubbles();
 wireAutosizeFields();
+startLetterAtmosphere();
 </script>
 </body>
 </html>
