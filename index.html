@@ -7,7 +7,7 @@
 <meta name="description" content="Lidu Letters — questions answered through letterboard">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<meta name="lidu-build" content="20260824f">
+<meta name="lidu-build" content="20260824g">
 <title>Lidu Letters</title>
 <style>
   :root {
@@ -110,7 +110,9 @@
     display: inline-block;
     opacity: 0;
     transition: opacity 0.14s linear;
-    background: linear-gradient(120deg, var(--sonic-bright), var(--purple-soft), var(--green-soft));
+    /* One shared gradient across the whole title — each letter samples a slice */
+    background-image: linear-gradient(120deg, var(--sonic-bright), var(--purple-soft), var(--green-soft));
+    background-repeat: no-repeat;
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -181,7 +183,8 @@
     bottom: -8px;
     width: 12px;
     height: 12px;
-    background: inherit;
+    /* Match the dark bottom of the bubble fill so the tail reads as attached */
+    background: #0f2436;
     border-right: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
     transform: rotate(45deg);
@@ -1546,6 +1549,19 @@ function startLetterAtmosphere() {
   }, 300);
 }
 
+function syncTitleGradient() {
+  const el = document.getElementById("siteTitle");
+  if (!el) return;
+  const chars = el.querySelectorAll(".title-char");
+  if (!chars.length) return;
+  const total = Math.max(1, el.offsetWidth);
+  chars.forEach(span => {
+    const left = span.offsetLeft;
+    span.style.backgroundSize = total + "px 100%";
+    span.style.backgroundPosition = -left + "px 0";
+  });
+}
+
 function spellTitle() {
   const el = document.getElementById("siteTitle");
   if (!el) return;
@@ -1560,21 +1576,27 @@ function spellTitle() {
   }
   el.appendChild(frag);
   const chars = el.querySelectorAll(".title-char");
-  if (reduceMotion) {
-    chars.forEach(span => span.classList.add("is-on"));
-    return;
-  }
-  // Full title is laid out and centered first; letters only fade in place
-  const stepMs = 2000 / text.length;
-  chars.forEach((span, i) => {
-    window.setTimeout(() => span.classList.add("is-on"), stepMs * (i + 1));
+  // Layout full title first, then align one continuous gradient across letters
+  requestAnimationFrame(() => {
+    syncTitleGradient();
+    if (reduceMotion) {
+      chars.forEach(span => span.classList.add("is-on"));
+      return;
+    }
+    const stepMs = 2000 / text.length;
+    chars.forEach((span, i) => {
+      window.setTimeout(() => span.classList.add("is-on"), stepMs * (i + 1));
+    });
   });
 }
 
 let letterResizeTimer = null;
 window.addEventListener("resize", () => {
   window.clearTimeout(letterResizeTimer);
-  letterResizeTimer = window.setTimeout(buildLetterGrid, 200);
+  letterResizeTimer = window.setTimeout(() => {
+    buildLetterGrid();
+    syncTitleGradient();
+  }, 200);
 });
 
 routeFromHash();
