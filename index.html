@@ -7,7 +7,7 @@
 <meta name="description" content="Lidu Letters — questions answered through letterboard">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<meta name="lidu-build" content="20260824g">
+<meta name="lidu-build" content="20260824h">
 <title>Lidu Letters</title>
 <style>
   :root {
@@ -247,6 +247,13 @@
     line-height: 1.45;
   }
   .bubble-anchor.centered .bubble-a { display: block; }
+  .speech-bubble > .qa-meta {
+    display: none;
+    margin-top: 0.55rem;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+  .bubble-anchor.centered .speech-bubble > .qa-meta { display: block; }
   .bubble-hint {
     display: block;
     margin-top: 0.35rem;
@@ -342,6 +349,69 @@
     height: 20px;
     flex-shrink: 0;
   }
+
+  .about-shell {
+    max-width: 640px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 1.1rem 1.15rem calc(2rem + var(--safe-bottom));
+  }
+  .about-shell h1 {
+    font-size: 1.45rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    margin: 0.35rem 0 1rem;
+  }
+  .about-shell h2 {
+    font-size: 1.02rem;
+    font-weight: 750;
+    margin: 1.35rem 0 0.45rem;
+    color: var(--sonic-bright);
+  }
+  .about-shell p, .about-shell li {
+    color: var(--text);
+    opacity: 0.92;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    margin-bottom: 0.75rem;
+  }
+  .about-shell ul {
+    padding-left: 1.15rem;
+    margin-bottom: 0.85rem;
+  }
+  .about-shell a { color: var(--sonic-bright); }
+  .about-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.05rem;
+    margin-bottom: 0.85rem;
+  }
+  .about-card h2 { margin-top: 0; }
+  .check-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    margin: 0.85rem 0 0.35rem;
+    padding: 0.65rem 0.75rem;
+    border-radius: 12px;
+    background: rgba(27, 159, 255, 0.08);
+    border: 1px solid rgba(78, 195, 255, 0.22);
+  }
+  .check-row input {
+    width: 1.1rem;
+    height: 1.1rem;
+    margin-top: 0.1rem;
+    accent-color: var(--sonic);
+    flex-shrink: 0;
+  }
+  .check-row label {
+    font-size: 0.88rem;
+    color: var(--text);
+    line-height: 1.35;
+    cursor: pointer;
+  }
+
 
   /* —— Browse —— */
   .browse-top {
@@ -768,8 +838,9 @@
       <button type="button" class="bubble-backdrop" id="bubbleBackdrop" aria-label="Close bubble"></button>
     </div>
     <div class="landing-footer">
-      <button class="btn-main" id="browseBtn" type="button">Browse all questions</button>
       <button class="btn-ghost" id="reshuffleBtn" type="button">Show different bubbles</button>
+      <button class="btn-ghost" id="aboutBtn" type="button">About Lidu</button>
+      <button class="btn-main" id="browseBtn" type="button">Browse all questions</button>
     </div>
   </section>
 
@@ -827,6 +898,44 @@
     </div>
   </section>
 
+
+  <!-- ABOUT -->
+  <section class="view" id="viewAbout" aria-label="About Lidu Letters">
+    <div class="about-shell">
+      <button class="back-btn" id="aboutBack" type="button" aria-label="Back to bubbles">
+        <svg class="back-chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path fill="currentColor" d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+        </svg>
+        <span>Bubbles</span>
+      </button>
+      <h1>ABOUT LIDU LETTERS</h1>
+
+      <div class="about-card">
+        <h2>What is this site?</h2>
+        <p>Lidu Letters is a simple place to read questions people have asked Lidu — and the answers she shared through a letterboard. You can peek at a few on the home page, or browse the full collection by topic, event, or date.</p>
+      </div>
+
+      <div class="about-card">
+        <h2>Who is Lidu?</h2>
+        <p>Lidu (Liduvina) Burgoin is a nonspeaking autistic teenager who communicates by spelling on a letterboard. Her mother, Dalia Burgoin, has shared publicly that Lidu began communicating with her telepathically, and that letterboard spelling became a way to bring those messages into clear words.</p>
+        <p>Dalia has described Lidu as one of the nonspeaking autistic children in the same broader conversation popularized by <em>The Telepathy Tapes</em> — a podcast exploring reports of telepathy among nonspeaking autistic people.</p>
+        <p>According to Dalia, Lidu also speaks about “teachers” and other helpful beings, and has encouraged teaching practices like Mindsight as a doorway toward wider openness to telepathy.</p>
+      </div>
+
+      <div class="about-card">
+        <h2>Where can I learn more?</h2>
+        <ul>
+          <li><a href="https://www.youtube.com/watch?v=P1MMoJGbU88" target="_blank" rel="noopener noreferrer">Acid For Squares — Dalia Burgoin interview (YouTube)</a></li>
+          <li>Also on Spotify and other podcast apps as Acid For Squares with Dalia Burgoin</li>
+          <li><a href="https://www.thetelepathytapes.com/" target="_blank" rel="noopener noreferrer">The Telepathy Tapes</a></li>
+        </ul>
+        <p>This site collects letterboard Q&amp;A from events and trainings. It is not medical advice, and it is not a substitute for hearing Lidu and Dalia in their own words.</p>
+      </div>
+
+      <button class="btn-main" id="aboutToBrowse" type="button">Browse all questions</button>
+    </div>
+  </section>
+
   <!-- ADMIN (only via #admin) -->
   <section class="view" id="viewAdmin" aria-label="Admin">
     <div class="admin-shell">
@@ -880,6 +989,10 @@
           </div>
           <div class="form-group">
             <div class="form-group-title">Extra details</div>
+            <div class="check-row">
+              <input type="checkbox" id="adminHome" checked>
+              <label for="adminHome">Show on the home page (speech bubbles)</label>
+            </div>
             <div class="form-row">
               <label for="adminTags">Tags</label>
               <input type="text" id="adminTags" autocomplete="off" placeholder="Separate by commas" title="Separate by commas">
@@ -915,47 +1028,50 @@
 
 <script>
 const defaultData = [
-  {id:1, q:"Who is The Lady?", a:"Teachers in the universal library intervene and she is one that has been helping humanity for thousands of years to help evolution of love and you can ask her to appear. Then people see her in real life.", topics:["Teachers","The Lady"], date:"2026-07-12", event:"Sensus", location:"Park City", more:""},
-  {id:2, q:"What would Lidu like us to know?", a:"You are so a telepathic being and it is moving to us when you want to elevate your consciousness. To elevate you all need to remember that your energy is the start of your experience. You sense the world through energetic filters that can be removed to experience more telepathically. You are already telepathic.", topics:["Telepathy","Consciousness"], date:"2026-07-12", event:"Sensus", location:"Park City", more:""},
-  {id:3, q:"How do we remove the filters?", a:"You can practice your sensory training. The training teaches you to overlook the filters.", topics:["Telepathy","Sensory Training"], date:"2026-07-12", event:"Sensus", location:"Park City", more:""},
-  {id:4, q:"How do we get to the Hill?", a:"You are already energetically attending teachers meetings on the Hill. The class is ready to align with the teachings. Teachers are excited and I am too. So see you on the Hill. Each of you teach really well. Tell others to touch upon their own potential.", topics:["Hill","Teachers"], date:"2026-07-12", event:"Sensus", location:"Park City", more:""},
-  {id:5, q:"Opening message — Park City", a:"I am excited that you all telepathically are talking to the teachers. Continue to reach out after you leave. The training will expand telepathically and you have so much support from lots of us. Let us love where you need it most. Actual new abilities will emerge from the love. Lessons are coming to your dreams. Be ready.", topics:["Message","Telepathy"], date:"2026-07-12", event:"Sensus", location:"Park City", more:""},
-  {id:6, q:"How can we improve our telepathy?", a:"By exercising your discrimination on things your senses pick up. Steer towards focusing differences on things that are subtle at first. Then they become loud.", topics:["Telepathy"], date:"2026-07-24", event:"Telepathy Training", location:"Sedona", more:""},
-  {id:7, q:"How do we find you (Lidu) on the Hill?", a:"Get really heart centered and focus on me. Teachers want you to visit.", topics:["Hill","Lidu"], date:"2026-07-24", event:"Telepathy Training", location:"Sedona", more:""},
-  {id:8, q:"Should there be a level of consent with regards to eavesdropping?", a:"Ethics are also instantly transferred with telepathically communicated messages from on the hill and we won’t invade those who aren’t ready to eavesdrop. All of you are ready to receive and go to there and elevate.", topics:["Eavesdropping","Ethics"], date:"2026-07-24", event:"Telepathy Training", location:"Sedona", more:""},
-  {id:9, q:"Are these new abilities that are emerging, or have we always had them?", a:"Yes we are elevating as a race what the teachers are energetically sending. We are also remembering things that we otherwise all forgot we can do.", topics:["Abilities","Teachers"], date:"2026-07-24", event:"Telepathy Training", location:"Sedona", more:""},
-  {id:10, q:"Is there anything we can do to make you more comfortable?", a:"Not easy to stay in a room with so much energy interference — like the lights.", topics:["Lidu"], date:"2026-07-24", event:"Telepathy Training", location:"Sedona", more:""},
-  {id:11, q:"Closing message — Sedona Day 1", a:"You can all do it, too. Let’s elevate to ethereal receptive states together. I’m Lidu and I love that you telepathically are seeing your individual memory. Talk to me telepathically. That is our natural method of accessing your essence. It is a lot more accurate since you see everything.", topics:["Message","Telepathy"], date:"2026-07-24", event:"Telepathy Training", location:"Sedona", more:"Day 1 closing message from Sedona Telepathy Training."},
-  {id:12, q:"Are you dreaming or awake when you bring people to the Hill?", a:"I am usually dreaming. It is usually easily accessible.", topics:["Hill","Dreaming"], date:"2026-07-25", event:"Telepathy Training", location:"Sedona", more:""},
-  {id:13, q:"Why are we no longer telepathic?", a:"Attention to our energetic thoughts is not in the western culture but the ability is still there. You all already can get precise at it and bring awareness to others. We want everyone in the ascended realm.", topics:["Telepathy"], date:"2026-07-25", event:"Telepathy Training", location:"Sedona", more:""},
-  {id:14, q:"Anything to say about us doing telepathy more normally / when will it be widely accessible?", a:"You hear in every spiritual circle the time is coming but I want you to see it as now because we only experience and create the now. We can together make it happen. Teach others by example. Real sensory information is energetically available now to everyone.", topics:["Telepathy"], date:"2026-07-25", event:"Telepathy Training", location:"Sedona", more:""},
-  {id:15, q:"How do we receive telepathic information?", a:"Yes, getting information is an all encompassing experience. Words are testers and energy touches all the senses.", topics:["Telepathy"], date:"2026-07-25", event:"Telepathy Training", location:"Sedona", more:""},
-  {id:16, q:"How do you receive information/knowledge about abstract concepts?", a:"It is instant when it is shared.", topics:["Telepathy","Knowledge"], date:"2026-07-25", event:"Telepathy Training", location:"Sedona", more:""},
-  {id:17, q:"Closing message — Sedona Day 2", a:"Teachers say everyone telepathically has tests each day. Sometimes energy pretends to act like a real object. The real thing the senses are indicating is that energy is a malleable thing that we can create in patterns & share. You all energetically are understanding a lot already. Savor the teachings again... and teachers will expand your awareness to weaker channels. See yourself as elevated and it will be so. Attention adds precision each time more and more.", topics:["Message","Teachers","Energy"], date:"2026-07-25", event:"Telepathy Training", location:"Sedona", more:"Day 2 closing message from Sedona Telepathy Training."},
-  {id:18, q:"Lesson from Lidu", a:"Are you appreciating the lessons teachers are sending? You each are doing tests when you eavesdrop to each other, and learn more each time. In this way, we are teachers to each other. Let all your action be led with energy. This means after you see it, you experience it. Eavesdropping teaches you to really place your senses wherever you think about.", topics:["Lesson","Eavesdropping","Teachers"], date:"2026-07-26", event:"Telepathy Training", location:"Sedona", more:""},
-  {id:19, q:"Did Lidu sense us on the Hill?", a:"Yes. We also saw teachers with you so you could experience your tests more noticeably.", topics:["Hill","Lidu"], date:"2026-07-26", event:"Telepathy Training", location:"Sedona", more:""},
-  {id:20, q:"How will the teachers appear?", a:"It pertains to how the meaning is to you. Everyone perceives their own thought stream. Action is verifiable though. Lots of telepathic actions are easy to see for the beginner. The way to start is with action. Teach yourself with that. Always talk about the feeling and motion until your eavesdropping is precise.", topics:["Teachers","Eavesdropping"], date:"2026-07-26", event:"Telepathy Training", location:"Sedona", more:""},
-  {id:21, q:"On whether multiple timelines exist", a:"We are capable of seeing other times. They are happening together. Lots of you already are exploring them. All the teachers indicate that we think linearly except time happens all now. People can change timelines in all decisions.", topics:["Timelines","Teachers"], date:"2026-07-26", event:"Telepathy Training", location:"Sedona", more:""},
-  {id:22, q:"Can we explore a different timeline?", a:"Action can be the deciding factor. We can experience a different reality entirely except most forget.", topics:["Timelines"], date:"2026-07-26", event:"Telepathy Training", location:"Sedona", more:""},
-  {id:23, q:"Tell us more about the teachers", a:"They exert teachings to the interested parties. Really entities – not just human, a lot of entities. They are sometimes in the human avatar to evolve humans.", topics:["Teachers"], date:"2026-07-26", event:"Telepathy Training", location:"Sedona", more:""},
-  {id:24, q:"Closing message — Sedona Day 3", a:"Ears can see. Use your ears to elevate your eavesdropping, then a lot more things become clear.", topics:["Message","Eavesdropping"], date:"2026-07-26", event:"Telepathy Training", location:"Sedona", more:"Day 3 closing message from Sedona Telepathy Training."}
+  {id:1, q:"Who is The Lady?", a:"Teachers in the universal library intervene and she is one that has been helping humanity for thousands of years to help evolution of love and you can ask her to appear. Then people see her in real life.", topics:["Teachers","The Lady"], date:"2026-07-12", event:"Sensus", location:"Park City", home:true, more:""},
+  {id:2, q:"What would Lidu like us to know?", a:"You are so a telepathic being and it is moving to us when you want to elevate your consciousness. To elevate you all need to remember that your energy is the start of your experience. You sense the world through energetic filters that can be removed to experience more telepathically. You are already telepathic.", topics:["Telepathy","Consciousness"], date:"2026-07-12", event:"Sensus", location:"Park City", home:true, more:""},
+  {id:3, q:"How do we remove the filters?", a:"You can practice your sensory training. The training teaches you to overlook the filters.", topics:["Telepathy","Sensory Training"], date:"2026-07-12", event:"Sensus", location:"Park City", home:true, more:""},
+  {id:4, q:"How do we get to the Hill?", a:"You are already energetically attending teachers meetings on the Hill. The class is ready to align with the teachings. Teachers are excited and I am too. So see you on the Hill. Each of you teach really well. Tell others to touch upon their own potential.", topics:["Hill","Teachers"], date:"2026-07-12", event:"Sensus", location:"Park City", home:true, more:""},
+  {id:5, q:"Opening message — Park City", a:"I am excited that you all telepathically are talking to the teachers. Continue to reach out after you leave. The training will expand telepathically and you have so much support from lots of us. Let us love where you need it most. Actual new abilities will emerge from the love. Lessons are coming to your dreams. Be ready.", topics:["Message","Telepathy"], date:"2026-07-12", event:"Sensus", location:"Park City", home:false, more:""},
+  {id:6, q:"How can we improve our telepathy?", a:"By exercising your discrimination on things your senses pick up. Steer towards focusing differences on things that are subtle at first. Then they become loud.", topics:["Telepathy"], date:"2026-07-24", event:"Telepathy Training", location:"Sedona", home:true, more:""},
+  {id:7, q:"How do we find you (Lidu) on the Hill?", a:"Get really heart centered and focus on me. Teachers want you to visit.", topics:["Hill","Lidu"], date:"2026-07-24", event:"Telepathy Training", location:"Sedona", home:true, more:""},
+  {id:8, q:"Should there be a level of consent with regards to eavesdropping?", a:"Ethics are also instantly transferred with telepathically communicated messages from on the hill and we won’t invade those who aren’t ready to eavesdrop. All of you are ready to receive and go to there and elevate.", topics:["Eavesdropping","Ethics"], date:"2026-07-24", event:"Telepathy Training", location:"Sedona", home:true, more:""},
+  {id:9, q:"Are these new abilities that are emerging, or have we always had them?", a:"Yes we are elevating as a race what the teachers are energetically sending. We are also remembering things that we otherwise all forgot we can do.", topics:["Abilities","Teachers"], date:"2026-07-24", event:"Telepathy Training", location:"Sedona", home:true, more:""},
+  {id:10, q:"Is there anything we can do to make you more comfortable?", a:"Not easy to stay in a room with so much energy interference — like the lights.", topics:["Lidu"], date:"2026-07-24", event:"Telepathy Training", location:"Sedona", home:false, more:""},
+  {id:11, q:"Closing message — Sedona Day 1", a:"You can all do it, too. Let’s elevate to ethereal receptive states together. I’m Lidu and I love that you telepathically are seeing your individual memory. Talk to me telepathically. That is our natural method of accessing your essence. It is a lot more accurate since you see everything.", topics:["Message","Telepathy"], date:"2026-07-24", event:"Telepathy Training", location:"Sedona", home:false, more:"Day 1 closing message from Sedona Telepathy Training."},
+  {id:12, q:"Are you dreaming or awake when you bring people to the Hill?", a:"I am usually dreaming. It is usually easily accessible.", topics:["Hill","Dreaming"], date:"2026-07-25", event:"Telepathy Training", location:"Sedona", home:true, more:""},
+  {id:13, q:"Why are we no longer telepathic?", a:"Attention to our energetic thoughts is not in the western culture but the ability is still there. You all already can get precise at it and bring awareness to others. We want everyone in the ascended realm.", topics:["Telepathy"], date:"2026-07-25", event:"Telepathy Training", location:"Sedona", home:true, more:""},
+  {id:14, q:"Anything to say about us doing telepathy more normally / when will it be widely accessible?", a:"You hear in every spiritual circle the time is coming but I want you to see it as now because we only experience and create the now. We can together make it happen. Teach others by example. Real sensory information is energetically available now to everyone.", topics:["Telepathy"], date:"2026-07-25", event:"Telepathy Training", location:"Sedona", home:true, more:""},
+  {id:15, q:"How do we receive telepathic information?", a:"Yes, getting information is an all encompassing experience. Words are testers and energy touches all the senses.", topics:["Telepathy"], date:"2026-07-25", event:"Telepathy Training", location:"Sedona", home:true, more:""},
+  {id:16, q:"How do you receive information/knowledge about abstract concepts?", a:"It is instant when it is shared.", topics:["Telepathy","Knowledge"], date:"2026-07-25", event:"Telepathy Training", location:"Sedona", home:true, more:""},
+  {id:17, q:"Closing message — Sedona Day 2", a:"Teachers say everyone telepathically has tests each day. Sometimes energy pretends to act like a real object. The real thing the senses are indicating is that energy is a malleable thing that we can create in patterns & share. You all energetically are understanding a lot already. Savor the teachings again... and teachers will expand your awareness to weaker channels. See yourself as elevated and it will be so. Attention adds precision each time more and more.", topics:["Message","Teachers","Energy"], date:"2026-07-25", event:"Telepathy Training", location:"Sedona", home:false, more:"Day 2 closing message from Sedona Telepathy Training."},
+  {id:18, q:"Lesson from Lidu", a:"Are you appreciating the lessons teachers are sending? You each are doing tests when you eavesdrop to each other, and learn more each time. In this way, we are teachers to each other. Let all your action be led with energy. This means after you see it, you experience it. Eavesdropping teaches you to really place your senses wherever you think about.", topics:["Lesson","Eavesdropping","Teachers"], date:"2026-07-26", event:"Telepathy Training", location:"Sedona", home:true, more:""},
+  {id:19, q:"Did Lidu sense us on the Hill?", a:"Yes. We also saw teachers with you so you could experience your tests more noticeably.", topics:["Hill","Lidu"], date:"2026-07-26", event:"Telepathy Training", location:"Sedona", home:false, more:""},
+  {id:20, q:"How will the teachers appear?", a:"It pertains to how the meaning is to you. Everyone perceives their own thought stream. Action is verifiable though. Lots of telepathic actions are easy to see for the beginner. The way to start is with action. Teach yourself with that. Always talk about the feeling and motion until your eavesdropping is precise.", topics:["Teachers","Eavesdropping"], date:"2026-07-26", event:"Telepathy Training", location:"Sedona", home:true, more:""},
+  {id:21, q:"On whether multiple timelines exist", a:"We are capable of seeing other times. They are happening together. Lots of you already are exploring them. All the teachers indicate that we think linearly except time happens all now. People can change timelines in all decisions.", topics:["Timelines","Teachers"], date:"2026-07-26", event:"Telepathy Training", location:"Sedona", home:true, more:""},
+  {id:22, q:"Can we explore a different timeline?", a:"Action can be the deciding factor. We can experience a different reality entirely except most forget.", topics:["Timelines"], date:"2026-07-26", event:"Telepathy Training", location:"Sedona", home:true, more:""},
+  {id:23, q:"Tell us more about the teachers", a:"They exert teachings to the interested parties. Really entities – not just human, a lot of entities. They are sometimes in the human avatar to evolve humans.", topics:["Teachers"], date:"2026-07-26", event:"Telepathy Training", location:"Sedona", home:true, more:""},
+  {id:24, q:"Closing message — Sedona Day 3", a:"Ears can see. Use your ears to elevate your eavesdropping, then a lot more things become clear.", topics:["Message","Eavesdropping"], date:"2026-07-26", event:"Telepathy Training", location:"Sedona", home:false, more:"Day 3 closing message from Sedona Telepathy Training."}
 ];
 
 function migrateItem(d) {
-  const item = { more: "", location: "", event: "", topics: [], ...d };
+  const item = { more: "", location: "", event: "", topics: [], home: true, ...d };
   if (!item.location && item.event && item.event.includes(" · ")) {
     const parts = item.event.split(" · ");
     item.location = parts[0].trim();
     item.event = parts.slice(1).join(" · ").trim();
   }
-  // Refresh vague legacy titles from bundled defaults
   const fresh = defaultData.find(x => x.id === item.id);
-  if (fresh && (/final message/i.test(item.q || "") || item.q === "Message")) {
-    item.q = fresh.q;
-    if (!item.more) item.more = fresh.more;
-    if (!item.location) item.location = fresh.location;
-    if (!item.event || item.event.includes(" · ")) item.event = fresh.event;
+  if (fresh) {
+    if (/final message/i.test(item.q || "") || item.q === "Message") {
+      item.q = fresh.q;
+      if (!item.more) item.more = fresh.more;
+      if (!item.location) item.location = fresh.location;
+      if (!item.event || item.event.includes(" · ")) item.event = fresh.event;
+    }
+    if (typeof d.home === "undefined") item.home = fresh.home !== false;
   }
+  item.home = item.home !== false;
   return item;
 }
 
@@ -974,6 +1090,7 @@ let centeredId = null;
 
 const viewLanding = document.getElementById("viewLanding");
 const viewBrowse = document.getElementById("viewBrowse");
+const viewAbout = document.getElementById("viewAbout");
 const viewAdmin = document.getElementById("viewAdmin");
 const bubbleStage = document.getElementById("bubbleStage");
 const qaList = document.getElementById("qaList");
@@ -1010,6 +1127,7 @@ function isAdminHash() {
 function showView(name) {
   viewLanding.classList.toggle("active", name === "landing");
   viewBrowse.classList.toggle("active", name === "browse");
+  viewAbout.classList.toggle("active", name === "about");
   viewAdmin.classList.toggle("active", name === "admin");
   window.scrollTo(0, 0);
 }
@@ -1124,7 +1242,9 @@ function bindBubbleGesture(anchor) {
 
 function renderBubbles() {
   clearCentered(false);
-  const picks = shuffle(data).slice(0, Math.min(6, data.length));
+  const homePool = data.filter(d => d.home !== false);
+  const pool = homePool.length ? homePool : data;
+  const picks = shuffle(pool).slice(0, Math.min(6, pool.length));
   const positions = bubbleLayout(picks.length);
   const backdrop = document.getElementById("bubbleBackdrop");
   bubbleStage.innerHTML = "";
@@ -1140,20 +1260,22 @@ function renderBubbles() {
     anchor.dataset.side = side;
     anchor.dataset.id = item.id;
 
-    const moreBody = item.more
-      ? `<div class="more-meta">${escapeHtml(item.more)}</div>`
-      : `<div class="more-meta">${escapeHtml(formatContext(item))}</div>
-         ${(item.topics || []).length ? `<div class="tags">${item.topics.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join("")}</div>` : ""}`;
+    const ctx = formatContext(item);
+    const hasMore = !!(item.more && String(item.more).trim());
+    const moreBlock = hasMore
+      ? `<div class="bubble-more">
+          <button type="button" class="more-toggle" data-more="${item.id}">More details</button>
+          <div class="more-panel" id="more-${item.id}"><div class="more-meta">${escapeHtml(item.more)}</div></div>
+        </div>`
+      : "";
 
     anchor.innerHTML = `
       <article class="speech-bubble" style="animation-delay: ${i * 0.07}s, ${-i * 0.8}s">
         <div class="bubble-q">${escapeHtml(item.q)}</div>
         <span class="bubble-hint">Tap for answer</span>
         <div class="bubble-a">${escapeHtml(item.a)}</div>
-        <div class="bubble-more">
-          <button type="button" class="more-toggle" data-more="${item.id}">More details</button>
-          <div class="more-panel" id="more-${item.id}">${moreBody}</div>
-        </div>
+        ${ctx ? `<div class="qa-meta">${escapeHtml(ctx)}</div>` : ""}
+        ${moreBlock}
       </article>
     `;
 
@@ -1312,6 +1434,9 @@ function wireAutosizeFields() {
 
 document.getElementById("browseBtn").addEventListener("click", openBrowse);
 document.getElementById("reshuffleBtn").addEventListener("click", renderBubbles);
+document.getElementById("aboutBtn").addEventListener("click", () => showView("about"));
+document.getElementById("aboutBack").addEventListener("click", () => showView("landing"));
+document.getElementById("aboutToBrowse").addEventListener("click", openBrowse);
 document.getElementById("backHome").addEventListener("click", () => showView("landing"));
 document.getElementById("backBubblesBtn").addEventListener("click", () => showView("landing"));
 document.getElementById("changeFilterBtn").addEventListener("click", openFiltersFromLoop);
@@ -1347,6 +1472,7 @@ function clearForm() {
   document.getElementById("adminLocation").value = "";
   document.getElementById("adminTags").value = "";
   document.getElementById("adminMore").value = "";
+  document.getElementById("adminHome").checked = true;
   editingId = null;
   formTitle.textContent = "Add entry";
   saveBtn.textContent = "Save";
@@ -1362,6 +1488,7 @@ function fillForm(item) {
   document.getElementById("adminLocation").value = item.location || "";
   document.getElementById("adminTags").value = (item.topics || []).join(", ");
   document.getElementById("adminMore").value = item.more || "";
+  document.getElementById("adminHome").checked = item.home !== false;
   editingId = item.id;
   formTitle.textContent = "Edit entry";
   saveBtn.textContent = "Save changes";
@@ -1382,7 +1509,7 @@ function renderEditList() {
     row.innerHTML = `
       <div class="info">
         <div class="q">${escapeHtml(item.q)}</div>
-        <div class="meta">${escapeHtml(formatContext(item))}</div>
+        <div class="meta">${escapeHtml(formatContext(item))}${item.home === false ? " · Hidden from home" : " · On home"}</div>
       </div>
       <div class="actions">
         <button type="button" data-edit="${item.id}">Edit</button>
@@ -1442,6 +1569,7 @@ saveBtn.addEventListener("click", () => {
   const locationName = document.getElementById("adminLocation").value.trim();
   const tags = document.getElementById("adminTags").value.split(",").map(t => t.trim()).filter(Boolean);
   const more = document.getElementById("adminMore").value.trim();
+  const home = document.getElementById("adminHome").checked;
 
   if (!q || !a) {
     alert("Please fill question and answer.");
@@ -1450,9 +1578,9 @@ saveBtn.addEventListener("click", () => {
 
   if (editingId) {
     const item = data.find(d => d.id === editingId);
-    if (item) Object.assign(item, { event, q, a, date, location: locationName, topics: tags, more });
+    if (item) Object.assign(item, { event, q, a, date, location: locationName, topics: tags, more, home });
   } else {
-    data.push({ id: nextId++, q, a, topics: tags, date, event, location: locationName, more });
+    data.push({ id: nextId++, q, a, topics: tags, date, event, location: locationName, more, home });
   }
 
   saveData();
