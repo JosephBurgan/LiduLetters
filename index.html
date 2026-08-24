@@ -7,8 +7,13 @@
 <meta name="description" content="Lidu Letters — questions answered through letterboard">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<meta name="lidu-build" content="20260824o">
+<meta name="lidu-build" content="20260824p">
 <title>Lidu Letters</title>
+<!--
+  Lidu Letters — single-file mobile app.
+  Product/UX decisions from feedback live in DESIGN-NOTES.md (keep that file in sync).
+  Admin is hash-gated: #admin (not linked from the public UI).
+-->
 <style>
   :root {
     --bg: #061018;
@@ -46,6 +51,7 @@
 
   .view { display: none; min-height: 100dvh; flex-direction: column; }
   .view.active { display: flex; }
+  /* Home must fit one phone screen: title top, buttons bottom, no page scroll. */
   #viewLanding {
     position: relative;
     height: 100dvh;
@@ -57,7 +63,7 @@
     z-index: 1;
   }
 
-  /* —— Subtle letterboard atmosphere —— */
+  /* Letterboard atmosphere: faint white caps (~6–8%). Slow fade, frequent swaps (see DESIGN-NOTES). */
   .letter-grid {
     position: absolute;
     inset: 0;
@@ -113,7 +119,7 @@
     display: inline-block;
     opacity: 0;
     transition: opacity 0.14s linear;
-    /* One shared gradient across the whole title — each letter samples a slice */
+    /* Shared gradient across full title width (per-letter gradients looked wrong). JS sets background-size/position. */
     background-image: linear-gradient(120deg, var(--sonic-bright), var(--purple-soft), var(--green-soft));
     background-repeat: no-repeat;
     -webkit-background-clip: text;
@@ -132,6 +138,7 @@
     margin: 0.45rem 0.75rem;
     overflow: hidden;
   }
+  /* Full-viewport dim (stage-only dim left side gaps). Expanded bubble stacks above this. */
   .bubble-backdrop {
     display: none;
     position: fixed;
@@ -149,6 +156,7 @@
   .bubble-stage.has-focus .bubble-backdrop,
   #viewLanding.has-focus .bubble-backdrop { display: block; }
 
+  /* Fit-to-content bubbles, ~half-width max; left/right columns avoid edge clipping. */
   .bubble-anchor {
     position: absolute;
     z-index: 1;
@@ -489,6 +497,7 @@
     display: block;
     flex-shrink: 0;
   }
+  /* Filters = control chip (not a back chevron). Same blue→purple language as Sort. */
   .filter-toggle {
     appearance: none;
     display: inline-flex;
@@ -1051,6 +1060,12 @@
   </section>
 
 <script>
+/*
+  App logic. See DESIGN-NOTES.md for the "why".
+  Data shape: { id, q, a, topics[], date, event, location, home, more }
+  - home: false keeps an entry out of speech-bubble rotation (still in Browse).
+  - more: optional wiki/notes; only then show "More details" on home bubbles.
+*/
 const defaultData = [
   {id:1, q:"Who is The Lady?", a:"Teachers in the universal library intervene and she is one that has been helping humanity for thousands of years to help evolution of love and you can ask her to appear. Then people see her in real life.", topics:["Teachers","The Lady"], date:"2026-07-12", event:"Sensus", location:"Park City", home:true, more:""},
   {id:2, q:"What would Lidu like us to know?", a:"You are so a telepathic being and it is moving to us when you want to elevate your consciousness. To elevate you all need to remember that your energy is the start of your experience. You sense the world through energetic filters that can be removed to experience more telepathically. You are already telepathic.", topics:["Telepathy","Consciousness"], date:"2026-07-12", event:"Sensus", location:"Park City", home:true, more:""},
@@ -1079,6 +1094,7 @@ const defaultData = [
 ];
 
 function migrateItem(d) {
+  // Upgrade older localStorage shapes (combined event/location, vague titles, missing home).
   const item = { more: "", location: "", event: "", topics: [], home: true, ...d };
   if (!item.location && item.event && item.event.includes(" · ")) {
     const parts = item.event.split(" · ");
@@ -1102,6 +1118,8 @@ function migrateItem(d) {
 const stored = localStorage.getItem("liduData");
 let data = stored ? JSON.parse(stored).map(migrateItem) : defaultData.map(d => ({ ...d }));
 if (!Array.isArray(data) || data.length === 0) data = defaultData.map(d => ({ ...d }));
+// Persist migrations (home flags, split location/event, retitled messages).
+try { localStorage.setItem("liduData", JSON.stringify(data)); } catch (_) {}
 
 let nextId = Math.max(0, ...data.map(d => d.id)) + 1;
 let editingId = null;
@@ -1110,7 +1128,6 @@ let activeOption = "all";
 let filtersCollapsed = false;
 let showListMeta = false;
 let searchQuery = "";
-let centeredId = null;
 
 const viewLanding = document.getElementById("viewLanding");
 const viewBrowse = document.getElementById("viewBrowse");
@@ -1127,6 +1144,7 @@ const formTitle = document.getElementById("formTitle");
 const saveBtn = document.getElementById("saveBtn");
 const cancelEdit = document.getElementById("cancelEdit");
 
+// —— Data helpers ——
 function saveData() {
   localStorage.setItem("liduData", JSON.stringify(data));
 }
@@ -1148,6 +1166,7 @@ function isAdminHash() {
   return (location.hash || "").replace(/^#/, "").split("?")[0] === "admin";
 }
 
+// —— Views / routing ——
 function showView(name) {
   viewLanding.classList.toggle("active", name === "landing");
   viewBrowse.classList.toggle("active", name === "browse");
@@ -1175,6 +1194,7 @@ function shuffle(arr) {
   return a;
 }
 
+// —— Home speech bubbles ——
 function bubbleSlots(count) {
   // Left/right columns with top / mid / bottom rows
   const slots = [
@@ -1198,6 +1218,8 @@ function setBubbleTopPx(anchor, topPx, stageH) {
 }
 
 function layoutBubblesInStage() {
+  // Organic but readable: size-aware gaps, top margin stable, bottoms lifted off buttons,
+  // light jitter + column stagger so it does not look like a rigid grid (feedback).
   const stageH = bubbleStage.clientHeight;
   if (!stageH) return;
 
@@ -1206,11 +1228,9 @@ function layoutBubblesInStage() {
   const right = [...bubbleStage.querySelectorAll(".bubble-anchor.side-right:not(.centered)")]
     .sort((a, b) => Number(a.dataset.row) - Number(b.dataset.row));
 
-  // Keep familiar top breathing room; lift bottoms a bit more off the buttons
   const marginTop = Math.max(10, Math.min(26, stageH * 0.07));
   const marginBottom = Math.max(22, Math.min(48, stageH * 0.13));
 
-  // Per-column stagger so left/right don't form a rigid grid
   const columnNudge = {
     left: (Math.random() * 10) - 3,
     right: (Math.random() * 10) - 2
@@ -1268,7 +1288,6 @@ function clearCentered(animateBack = true) {
   if (!current) {
     bubbleStage.classList.remove("has-focus");
     viewLanding.classList.remove("has-focus");
-    centeredId = null;
     return;
   }
   const homeTop = current.dataset.homeTop;
@@ -1286,7 +1305,6 @@ function clearCentered(animateBack = true) {
   if (toggle) toggle.textContent = "More details";
   bubbleStage.classList.remove("has-focus");
   viewLanding.classList.remove("has-focus");
-  centeredId = null;
 }
 
 function centerBubble(anchor) {
@@ -1299,10 +1317,10 @@ function centerBubble(anchor) {
   if (bubble) bubble.scrollTop = 0;
   bubbleStage.classList.add("has-focus");
   viewLanding.classList.add("has-focus");
-  centeredId = Number(anchor.dataset.id);
 }
 
 function bindBubbleGesture(anchor) {
+  // Expanded bubble is a scrollable window: scroll keeps it open; a clean tap dismisses.
   const bubble = anchor.querySelector(".speech-bubble");
   let startX = 0;
   let startY = 0;
@@ -1339,6 +1357,7 @@ function bindBubbleGesture(anchor) {
 
 function renderBubbles() {
   clearCentered(false);
+  // Prefer curated home:true entries so first-time visitors are not hit with in-crowd context.
   const homePool = data.filter(d => d.home !== false);
   const pool = homePool.length ? homePool : data;
   const picks = shuffle(pool).slice(0, Math.min(6, pool.length));
@@ -1400,6 +1419,7 @@ bubbleStage.addEventListener("click", (e) => {
   toggle.textContent = panel.classList.contains("open") ? "Hide details" : "More details";
 });
 
+// —— Browse list ——
 function optionsForMode() {
   if (sortMode === "topic") {
     return ["all", ...[...new Set(data.flatMap(d => d.topics || []))].sort()];
@@ -1477,14 +1497,11 @@ function renderList() {
         <div class="qa-a">${escapeHtml(item.a)}</div>
         ${answerMeta}
         ${(item.topics || []).length ? `<div class="tags">${item.topics.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join("")}</div>` : ""}
+        ${item.more && String(item.more).trim() ? `
         <div class="wiki-block">
           <button type="button" class="more-toggle wiki-toggle">More details</button>
-          <div class="more-panel wiki-panel">
-            ${item.more
-              ? `<div>${escapeHtml(item.more)}</div>`
-              : (ctx ? `<div class="more-meta">${escapeHtml(ctx)}</div>` : `<p>Optional notes, links, and related context can live here.</p>`)}
-          </div>
-        </div>
+          <div class="more-panel wiki-panel"><div>${escapeHtml(item.more)}</div></div>
+        </div>` : ""}
       </div>
     `;
 
@@ -1496,11 +1513,13 @@ function renderList() {
 
     const wikiToggle = wrap.querySelector(".wiki-toggle");
     const wikiPanel = wrap.querySelector(".wiki-panel");
-    wikiToggle.addEventListener("click", (e) => {
-      e.stopPropagation();
-      wikiPanel.classList.toggle("open");
-      wikiToggle.textContent = wikiPanel.classList.contains("open") ? "Hide details" : "More details";
-    });
+    if (wikiToggle && wikiPanel) {
+      wikiToggle.addEventListener("click", (e) => {
+        e.stopPropagation();
+        wikiPanel.classList.toggle("open");
+        wikiToggle.textContent = wikiPanel.classList.contains("open") ? "Hide details" : "More details";
+      });
+    }
 
     qaList.appendChild(wrap);
   });
@@ -1520,6 +1539,7 @@ function openBrowse() {
 }
 
 function openFiltersFromLoop() {
+  // Expand only — do not scroll to top (felt broken / jumpy on phone).
   setFiltersCollapsed(false);
 }
 
@@ -1569,6 +1589,7 @@ document.querySelectorAll(".sort-btn").forEach(btn => {
 });
 
 /* —— Admin —— */
+// —— Admin (#admin) ——
 function clearForm() {
   document.getElementById("adminEvent").value = "";
   document.getElementById("adminQuestion").value = "";
@@ -1713,18 +1734,8 @@ function routeFromHash() {
 
 window.addEventListener("hashchange", routeFromHash);
 
-// Prefer bundled answers over stale empty localStorage from early drafts
-if (stored) {
-  try {
-    const parsed = JSON.parse(stored);
-    if (Array.isArray(parsed) && parsed.length >= defaultData.length) {
-      // keep migrated local edits
-      saveData();
-    }
-  } catch (_) {}
-}
 
-/* —— Background letterboard —— */
+// —— Letterboard + title reveal ——
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 let letterCells = [];
 let letterTimer = null;
@@ -1747,7 +1758,7 @@ function buildLetterGrid() {
     const cell = document.createElement("span");
     cell.className = "letter-cell";
     cell.textContent = randomLetter();
-    // Keep within ~10% white — vary slightly so the grid feels alive
+    // ~6–8% white (feedback settled here after trying ~5% and ~10%)
     cell.style.color = `rgba(255, 255, 255, ${(0.06 + Math.random() * 0.02).toFixed(3)})`;
     grid.appendChild(cell);
     letterCells.push(cell);
@@ -1771,7 +1782,7 @@ function startLetterAtmosphere() {
   }
   buildLetterGrid();
   if (letterTimer) window.clearInterval(letterTimer);
-  // Slow fade kept; frequency ~3x original for finding the busy extreme
+  // Slow fade (liked); higher swap frequency so the field feels alive without rushing fades
   letterTimer = window.setInterval(() => {
     if (!viewLanding.classList.contains("active") || !letterCells.length) return;
     const count = 6 + Math.floor(Math.random() * 7); // 6–12 letters per wave
@@ -1796,6 +1807,7 @@ function syncTitleGradient() {
 }
 
 function spellTitle() {
+  // Lay out full LIDU LETTERS centered first, then fade letters in-place over ~2s (no caret).
   const el = document.getElementById("siteTitle");
   if (!el) return;
   const text = "LIDU LETTERS";
@@ -1809,7 +1821,6 @@ function spellTitle() {
   }
   el.appendChild(frag);
   const chars = el.querySelectorAll(".title-char");
-  // Layout full title first, then align one continuous gradient across letters
   requestAnimationFrame(() => {
     syncTitleGradient();
     if (reduceMotion) {
