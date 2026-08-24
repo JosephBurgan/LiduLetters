@@ -7,7 +7,7 @@
 <meta name="description" content="Lidu Letters — questions answered through letterboard">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<meta name="lidu-build" content="20260824q">
+<meta name="lidu-build" content="20260824r">
 <title>Lidu Letters</title>
 <!--
   Lidu Letters — single-file mobile app.
@@ -117,7 +117,7 @@
     display: inline-block;
     opacity: 0;
     transition: opacity 0.14s linear;
-    /* Shared gradient across full title width (per-letter gradients looked wrong). JS sets background-size/position. */
+    /* Shared gradient across the title glyph run — JS sets background-size/position from measured letter widths. */
     background-image: linear-gradient(120deg, var(--sonic-bright), var(--purple-soft), var(--green-soft));
     background-repeat: no-repeat;
     -webkit-background-clip: text;
@@ -126,6 +126,10 @@
     -webkit-text-fill-color: transparent;
   }
   .landing-header h1 .title-char.is-on {
+    opacity: 1;
+  }
+  /* Fallback if the reveal script fails — title must never stay blank. */
+  .landing-header h1.is-visible .title-char {
     opacity: 1;
   }
 
@@ -852,15 +856,21 @@
     .bubble-anchor.side-right { right: 1.5%; }
   }
 
-  /* ~2/3 of a 1920-wide desktop: two question columns when wide enough. */
+  /* Two independent columns (not one grid of shared rows) so tall cards don't gap the other column. */
+  .qa-list--two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+    align-items: start;
+  }
+  .qa-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+  .qa-col .qa-item { margin-bottom: 0; }
+
   @media (min-width: 1280px) {
-    #qaList {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.55rem 0.85rem;
-      align-items: start;
-    }
-    #qaList .qa-item { margin-bottom: 0; }
     .browse-body { max-width: 1100px; }
   }
 
@@ -1490,60 +1500,78 @@ function filteredList() {
   });
 }
 
+function createQaItem(item) {
+  const wrap = document.createElement("div");
+  wrap.className = "qa-item";
+  const ctx = formatContext(item);
+  const listMeta = showListMeta && ctx
+    ? `<span class="qa-context">${escapeHtml(ctx)}</span>`
+    : "";
+  // Show meta under the answer only when it isn't already under the question
+  const answerMeta = !showListMeta && ctx
+    ? `<div class="qa-meta">${escapeHtml(ctx)}</div>`
+    : "";
+  wrap.innerHTML = `
+    <button type="button" class="qa-q" aria-expanded="false">
+      <span class="qa-q-text">
+        <span>${escapeHtml(item.q)}</span>
+        ${listMeta}
+      </span>
+      <span class="qa-chevron" aria-hidden="true">›</span>
+    </button>
+    <div class="qa-body">
+      <div class="qa-a">${escapeHtml(item.a)}</div>
+      ${answerMeta}
+      ${(item.topics || []).length ? `<div class="tags">${item.topics.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join("")}</div>` : ""}
+      ${item.more && String(item.more).trim() ? `
+      <div class="wiki-block">
+        <button type="button" class="more-toggle wiki-toggle">More details</button>
+        <div class="more-panel wiki-panel"><div>${escapeHtml(item.more)}</div></div>
+      </div>` : ""}
+    </div>
+  `;
+
+  const qBtn = wrap.querySelector(".qa-q");
+  qBtn.addEventListener("click", () => {
+    const open = wrap.classList.toggle("open");
+    qBtn.setAttribute("aria-expanded", open ? "true" : "false");
+  });
+
+  const wikiToggle = wrap.querySelector(".wiki-toggle");
+  const wikiPanel = wrap.querySelector(".wiki-panel");
+  if (wikiToggle && wikiPanel) {
+    wikiToggle.addEventListener("click", (e) => {
+      e.stopPropagation();
+      wikiPanel.classList.toggle("open");
+      wikiToggle.textContent = wikiPanel.classList.contains("open") ? "Hide details" : "More details";
+    });
+  }
+  return wrap;
+}
+
 function renderList() {
   const items = filteredList();
   qaList.innerHTML = "";
   browseEmpty.style.display = items.length ? "none" : "block";
 
-  items.forEach(item => {
-    const wrap = document.createElement("div");
-    wrap.className = "qa-item";
-    const ctx = formatContext(item);
-    const listMeta = showListMeta && ctx
-      ? `<span class="qa-context">${escapeHtml(ctx)}</span>`
-      : "";
-    // Show meta under the answer only when it isn't already under the question
-    const answerMeta = !showListMeta && ctx
-      ? `<div class="qa-meta">${escapeHtml(ctx)}</div>`
-      : "";
-    wrap.innerHTML = `
-      <button type="button" class="qa-q" aria-expanded="false">
-        <span class="qa-q-text">
-          <span>${escapeHtml(item.q)}</span>
-          ${listMeta}
-        </span>
-        <span class="qa-chevron" aria-hidden="true">›</span>
-      </button>
-      <div class="qa-body">
-        <div class="qa-a">${escapeHtml(item.a)}</div>
-        ${answerMeta}
-        ${(item.topics || []).length ? `<div class="tags">${item.topics.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join("")}</div>` : ""}
-        ${item.more && String(item.more).trim() ? `
-        <div class="wiki-block">
-          <button type="button" class="more-toggle wiki-toggle">More details</button>
-          <div class="more-panel wiki-panel"><div>${escapeHtml(item.more)}</div></div>
-        </div>` : ""}
-      </div>
-    `;
-
-    const qBtn = wrap.querySelector(".qa-q");
-    qBtn.addEventListener("click", () => {
-      const open = wrap.classList.toggle("open");
-      qBtn.setAttribute("aria-expanded", open ? "true" : "false");
+  // Wide desktop: two independent columns so a tall card never opens a gap in the other column.
+  const twoCol = window.matchMedia("(min-width: 1280px)").matches;
+  if (twoCol) {
+    qaList.className = "qa-list--two";
+    const col0 = document.createElement("div");
+    const col1 = document.createElement("div");
+    col0.className = "qa-col";
+    col1.className = "qa-col";
+    items.forEach((item, i) => {
+      (i % 2 === 0 ? col0 : col1).appendChild(createQaItem(item));
     });
+    qaList.appendChild(col0);
+    qaList.appendChild(col1);
+    return;
+  }
 
-    const wikiToggle = wrap.querySelector(".wiki-toggle");
-    const wikiPanel = wrap.querySelector(".wiki-panel");
-    if (wikiToggle && wikiPanel) {
-      wikiToggle.addEventListener("click", (e) => {
-        e.stopPropagation();
-        wikiPanel.classList.toggle("open");
-        wikiToggle.textContent = wikiPanel.classList.contains("open") ? "Hide details" : "More details";
-      });
-    }
-
-    qaList.appendChild(wrap);
-  });
+  qaList.className = "";
+  items.forEach(item => qaList.appendChild(createQaItem(item)));
 }
 
 function setFiltersCollapsed(collapsed) {
@@ -1826,13 +1854,16 @@ function startLetterAtmosphere() {
 function syncTitleGradient() {
   const el = document.getElementById("siteTitle");
   if (!el) return;
-  const chars = el.querySelectorAll(".title-char");
+  const chars = [...el.querySelectorAll(".title-char")];
   if (!chars.length) return;
-  const total = Math.max(1, el.offsetWidth);
-  chars.forEach(span => {
-    const left = span.offsetLeft;
+  // Sum glyph widths so the gradient tracks the title, not the window/header.
+  const widths = chars.map(span => span.getBoundingClientRect().width);
+  const total = Math.max(1, widths.reduce((a, b) => a + b, 0));
+  let x = 0;
+  chars.forEach((span, i) => {
     span.style.backgroundSize = total + "px 100%";
-    span.style.backgroundPosition = -left + "px 0";
+    span.style.backgroundPosition = -x + "px 0";
+    x += widths[i];
   });
 }
 
@@ -1842,6 +1873,7 @@ function spellTitle() {
   if (!el) return;
   const text = "LIDU LETTERS";
   el.textContent = "";
+  el.classList.remove("is-visible");
   const frag = document.createDocumentFragment();
   for (const ch of text) {
     const span = document.createElement("span");
@@ -1850,26 +1882,47 @@ function spellTitle() {
     frag.appendChild(span);
   }
   el.appendChild(frag);
-  const chars = el.querySelectorAll(".title-char");
+  const chars = [...el.querySelectorAll(".title-char")];
+
+  const revealAll = () => {
+    chars.forEach(span => span.classList.add("is-on"));
+    el.classList.add("is-visible");
+    syncTitleGradient();
+  };
+
   requestAnimationFrame(() => {
     syncTitleGradient();
     if (reduceMotion) {
-      chars.forEach(span => span.classList.add("is-on"));
+      revealAll();
       return;
     }
     const stepMs = 2000 / text.length;
     chars.forEach((span, i) => {
-      window.setTimeout(() => span.classList.add("is-on"), stepMs * (i + 1));
+      window.setTimeout(() => {
+        span.classList.add("is-on");
+        if (i === chars.length - 1) el.classList.add("is-visible");
+      }, stepMs * (i + 1));
     });
+    // Safety: never leave the home title blank if a timer is interrupted.
+    window.setTimeout(revealAll, 2200);
   });
 }
 
 let letterResizeTimer = null;
+let lastBrowseTwoCol = window.matchMedia("(min-width: 1280px)").matches;
 window.addEventListener("resize", () => {
   window.clearTimeout(letterResizeTimer);
   letterResizeTimer = window.setTimeout(() => {
     buildLetterGrid();
     syncTitleGradient();
+    if (viewLanding.classList.contains("active")) layoutBubblesInStage();
+    const twoCol = window.matchMedia("(min-width: 1280px)").matches;
+    if (twoCol !== lastBrowseTwoCol && viewBrowse.classList.contains("active")) {
+      lastBrowseTwoCol = twoCol;
+      renderList();
+    } else {
+      lastBrowseTwoCol = twoCol;
+    }
   }, 200);
 });
 
