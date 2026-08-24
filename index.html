@@ -7,7 +7,7 @@
 <meta name="description" content="Lidu Letters — questions answered through letterboard">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<meta name="lidu-build" content="20260824p">
+<meta name="lidu-build" content="20260824q">
 <title>Lidu Letters</title>
 <!--
   Lidu Letters — single-file mobile app.
@@ -63,16 +63,17 @@
     z-index: 1;
   }
 
-  /* Letterboard atmosphere: faint white caps (~6–8%). Slow fade, frequent swaps (see DESIGN-NOTES). */
+  /* Square letter cells, centered as a grid that grows from the page center (not stretched to the window). */
   .letter-grid {
     position: absolute;
     inset: 0;
     z-index: 0;
     display: grid;
-    grid-template-columns: repeat(var(--letter-cols, 10), minmax(0, 1fr));
-    grid-auto-rows: minmax(0, 1fr);
-    gap: 0.2rem 0.15rem;
-    padding: 0.55rem 0.4rem;
+    grid-template-columns: repeat(var(--letter-cols, 12), var(--letter-cell, 36px));
+    grid-auto-rows: var(--letter-cell, 36px);
+    gap: var(--letter-gap, 10px);
+    justify-content: center;
+    align-content: center;
     pointer-events: none;
     user-select: none;
     overflow: hidden;
@@ -83,22 +84,18 @@
     justify-content: center;
     font-family: ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif;
     font-weight: 700;
-    font-size: clamp(0.75rem, 2.6vw, 1.05rem);
+    font-size: calc(var(--letter-cell, 36px) * 0.42);
     letter-spacing: 0.02em;
-    color: rgba(255, 255, 255, 0.08);
+    color: #fff;
     border-radius: 999px;
-    aspect-ratio: 1;
-    max-height: 2.5rem;
-    margin: auto;
-    width: 85%;
-    opacity: 1;
-    transition: opacity 2.4s ease, color 2.4s ease, transform 2.4s ease;
+    /* Resting opacity only — never default to 1 (desktop first-paint flash). */
+    opacity: 0.07;
+    transition: opacity 2.4s ease, transform 2.4s ease;
     transform: scale(1);
   }
   .letter-cell.is-fading {
-    opacity: 0;
+    opacity: 0 !important; /* beats inline resting opacity */
     transform: scale(0.86);
-    color: rgba(255, 255, 255, 0.015);
   }
 
   /* —— Landing —— */
@@ -108,6 +105,7 @@
     padding: 0.85rem 1.2rem 0.45rem;
   }
   .landing-header h1 {
+    display: inline-block; /* width = glyph run, so gradient is title-sized not window-sized */
     font-size: clamp(1.85rem, 7vw, 2.4rem);
     font-weight: 800;
     letter-spacing: 0.04em;
@@ -168,12 +166,11 @@
   .bubble-anchor.side-right { right: 3%; left: auto; }
   .bubble-anchor.centered {
     z-index: 25;
-    top: 2% !important;
     left: 4% !important;
     right: 4% !important;
     width: auto;
     max-width: none;
-    max-height: calc(100% - 4%);
+    max-height: min(78%, calc(100% - 1rem));
     display: flex;
   }
   /* Keep expanded bubble above the full-screen dim */
@@ -847,9 +844,24 @@
   .admin-panel-view.active { display: block; }
 
   @media (min-width: 700px) {
-    .bubble-stage { max-width: 720px; margin-left: auto; margin-right: auto; width: 100%; }
+    /* Keep bubble field close to footer button width so desktop is not overly spread out. */
+    .bubble-stage { max-width: 460px; margin-left: auto; margin-right: auto; width: 100%; }
     .landing-footer { max-width: 420px; margin: 0 auto; width: 100%; }
-    .bubble-anchor { max-width: min(38vw, 200px); }
+    .bubble-anchor { max-width: min(46%, 200px); }
+    .bubble-anchor.side-left { left: 1.5%; }
+    .bubble-anchor.side-right { right: 1.5%; }
+  }
+
+  /* ~2/3 of a 1920-wide desktop: two question columns when wide enough. */
+  @media (min-width: 1280px) {
+    #qaList {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.55rem 0.85rem;
+      align-items: start;
+    }
+    #qaList .qa-item { margin-bottom: 0; }
+    .browse-body { max-width: 1100px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -1308,15 +1320,24 @@ function clearCentered(animateBack = true) {
 }
 
 function centerBubble(anchor) {
+  // Bring the opened bubble to the vertical center of the bubble stage (not the top).
   anchor.classList.remove("side-left", "side-right");
   anchor.classList.add("centered");
-  anchor.style.top = "2%";
   anchor.style.left = "";
   anchor.style.right = "";
   const bubble = anchor.querySelector(".speech-bubble");
   if (bubble) bubble.scrollTop = 0;
   bubbleStage.classList.add("has-focus");
   viewLanding.classList.add("has-focus");
+
+  const place = () => {
+    const stageH = bubbleStage.clientHeight || 1;
+    const ah = anchor.getBoundingClientRect().height || 0;
+    const topPx = Math.max(8, (stageH - ah) / 2);
+    anchor.style.top = ((topPx / stageH) * 100) + "%";
+  };
+  place();
+  requestAnimationFrame(place);
 }
 
 function bindBubbleGesture(anchor) {
@@ -1539,8 +1560,8 @@ function openBrowse() {
 }
 
 function openFiltersFromLoop() {
-  // Expand only — do not scroll to top (felt broken / jumpy on phone).
-  setFiltersCollapsed(false);
+  // Toggle: second click hides filters again (expected on phone). No scroll jump.
+  setFiltersCollapsed(!filtersCollapsed);
 }
 
 function autosizeField(el) {
@@ -1745,23 +1766,32 @@ function randomLetter() {
   return LETTERS[Math.floor(Math.random() * LETTERS.length)];
 }
 
+function letterRestOpacity() {
+  return 0.06 + Math.random() * 0.02; // ~6–8%
+}
+
 function buildLetterGrid() {
+  // Fixed square cell size; columns/rows grow from the center as the window grows.
   const grid = document.getElementById("letterGrid");
   if (!grid) return;
-  const cols = Math.max(8, Math.min(14, Math.floor(window.innerWidth / 34)));
-  const rows = Math.max(12, Math.min(22, Math.floor(window.innerHeight / 38)));
+  const cell = 36;
+  const gap = 10;
+  const cols = Math.max(8, Math.ceil((window.innerWidth + gap) / (cell + gap)) + 1);
+  const rows = Math.max(10, Math.ceil((window.innerHeight + gap) / (cell + gap)) + 1);
+  grid.style.setProperty("--letter-cell", cell + "px");
+  grid.style.setProperty("--letter-gap", gap + "px");
   grid.style.setProperty("--letter-cols", String(cols));
   grid.innerHTML = "";
   letterCells = [];
   const total = cols * rows;
   for (let i = 0; i < total; i++) {
-    const cell = document.createElement("span");
-    cell.className = "letter-cell";
-    cell.textContent = randomLetter();
-    // ~6–8% white (feedback settled here after trying ~5% and ~10%)
-    cell.style.color = `rgba(255, 255, 255, ${(0.06 + Math.random() * 0.02).toFixed(3)})`;
-    grid.appendChild(cell);
-    letterCells.push(cell);
+    const el = document.createElement("span");
+    el.className = "letter-cell";
+    el.textContent = randomLetter();
+    // Set resting opacity immediately so first paint is never fully opaque.
+    el.style.opacity = String(letterRestOpacity());
+    grid.appendChild(el);
+    letterCells.push(el);
   }
 }
 
@@ -1770,7 +1800,7 @@ function pulseLetterCell(cell) {
   cell.classList.add("is-fading");
   window.setTimeout(() => {
     cell.textContent = randomLetter();
-    cell.style.color = `rgba(255, 255, 255, ${(0.06 + Math.random() * 0.02).toFixed(3)})`;
+    cell.style.opacity = String(letterRestOpacity());
     cell.classList.remove("is-fading");
   }, 1200 + Math.random() * 600);
 }

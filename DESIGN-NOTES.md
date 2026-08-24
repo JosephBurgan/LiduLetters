@@ -52,7 +52,17 @@ Shareable live URL: https://josephburgan.github.io/LiduLetters/
 
 - Faint white capital letters (~6–8% opacity), capsule shape.
 - Prefer **slow fades** with **more frequent swaps** (busy enough to notice, not noisy).
+- **Never** flash at full opacity on first paint (desktop cold load was doing this).
+- Use a **square cell grid centered on the page** that grows outward as the window grows — do not stretch letter spacing to fill arbitrary window aspect ratios.
 - Respect `prefers-reduced-motion`.
+
+### Desktop
+
+- Expanded bubble opens to the **vertical center** of the bubble stage (not the top).
+- On wide screens, keep the bubble field roughly as wide as the footer buttons (~420–460px) so bubbles are not horizontally sparse.
+- Browse: **two columns** at about ≥1280px wide (~⅔ of 1920); one column below that.
+- Title gradient is sized to the **glyph run**, not the window (`h1` is `inline-block`).
+- “Change topic / filter” **toggles** the Filters panel (open and close).
 
 ## Browse (Questions)
 
