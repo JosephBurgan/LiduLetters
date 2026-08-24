@@ -7,7 +7,7 @@
 <meta name="description" content="Lidu Letters — questions answered through letterboard">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<meta name="lidu-build" content="20260824j">
+<meta name="lidu-build" content="20260824k">
 <title>Lidu Letters</title>
 <style>
   :root {
@@ -134,16 +134,20 @@
   }
   .bubble-backdrop {
     display: none;
-    position: absolute;
+    position: fixed;
     inset: 0;
+    width: 100%;
+    height: 100%;
     background: rgba(4, 12, 20, 0.55);
-    z-index: 15;
+    z-index: 20;
     border: none;
     padding: 0;
+    margin: 0;
     cursor: pointer;
     animation: fadeDim 0.35s ease both;
   }
-  .bubble-stage.has-focus .bubble-backdrop { display: block; }
+  .bubble-stage.has-focus .bubble-backdrop,
+  #viewLanding.has-focus .bubble-backdrop { display: block; }
 
   .bubble-anchor {
     position: absolute;
@@ -164,6 +168,8 @@
     max-height: calc(100% - 4%);
     display: flex;
   }
+  /* Keep expanded bubble above the full-screen dim */
+  .bubble-stage.has-focus { z-index: 21; }
 
   .speech-bubble {
     position: relative;
@@ -360,11 +366,19 @@
     margin: 0 auto;
     padding: 1.1rem 1.15rem calc(2rem + var(--safe-bottom));
   }
+  .about-shell > .back-btn {
+    padding-left: 0;
+    margin-left: 0;
+    margin-bottom: 0.55rem;
+  }
+  .about-shell > .back-btn .back-chevron {
+    margin-left: -0.2rem;
+  }
   .about-shell h1 {
     font-size: 1.45rem;
     font-weight: 800;
     letter-spacing: 0.02em;
-    margin: 0.35rem 0 1rem;
+    margin: 0 0 1rem;
   }
   .about-shell h2 {
     font-size: 1.02rem;
@@ -853,11 +867,11 @@
     <div class="browse-top" id="browseTop">
       <div class="browse-nav">
         <div class="browse-nav-start">
-          <button class="back-btn" id="backHome" type="button" aria-label="Back to bubbles">
+          <button class="back-btn" id="backHome" type="button" aria-label="Back to home">
             <svg class="back-chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               <path fill="currentColor" d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
             </svg>
-            <span>Bubbles</span>
+            <span>Home</span>
           </button>
         </div>
         <h2>Questions</h2>
@@ -896,7 +910,7 @@
       <div class="browse-loop">
         <div class="loop-actions">
           <button class="btn-main" id="changeFilterBtn" type="button">Change topic / filter</button>
-          <button class="btn-ghost" id="backBubblesBtn" type="button">Back to speech bubbles</button>
+          <button class="btn-ghost" id="backBubblesBtn" type="button">Home</button>
         </div>
       </div>
     </div>
@@ -935,7 +949,7 @@
 
       <div class="loop-actions" style="margin-top:1rem">
         <button class="btn-main" id="aboutToBrowse" type="button">Browse all questions</button>
-        <button class="btn-ghost" id="aboutToHome" type="button">Main Page</button>
+        <button class="btn-ghost" id="aboutToHome" type="button">Home</button>
       </div>
     </div>
   </section>
@@ -1199,6 +1213,7 @@ function clearCentered(animateBack = true) {
   const current = bubbleStage.querySelector(".bubble-anchor.centered");
   if (!current) {
     bubbleStage.classList.remove("has-focus");
+    viewLanding.classList.remove("has-focus");
     centeredId = null;
     return;
   }
@@ -1216,6 +1231,7 @@ function clearCentered(animateBack = true) {
   if (panel) panel.classList.remove("open");
   if (toggle) toggle.textContent = "More details";
   bubbleStage.classList.remove("has-focus");
+  viewLanding.classList.remove("has-focus");
   centeredId = null;
 }
 
@@ -1228,6 +1244,7 @@ function centerBubble(anchor) {
   const bubble = anchor.querySelector(".speech-bubble");
   if (bubble) bubble.scrollTop = 0;
   bubbleStage.classList.add("has-focus");
+  viewLanding.classList.add("has-focus");
   centeredId = Number(anchor.dataset.id);
 }
 
