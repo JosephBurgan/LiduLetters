@@ -7,7 +7,7 @@
 <meta name="description" content="Lidu Letters — questions answered through letterboard">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<meta name="lidu-build" content="20260824b">
+<meta name="lidu-build" content="20260824c">
 <title>Lidu Letters</title>
 <style>
   :root {
@@ -75,12 +75,12 @@
     justify-content: center;
     font-family: ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif;
     font-weight: 700;
-    font-size: clamp(0.7rem, 2.4vw, 0.95rem);
+    font-size: clamp(0.75rem, 2.6vw, 1.05rem);
     letter-spacing: 0.02em;
-    color: rgba(140, 190, 230, 0.07);
+    color: rgba(255, 255, 255, 0.1);
     border-radius: 999px;
     aspect-ratio: 1;
-    max-height: 2.4rem;
+    max-height: 2.5rem;
     margin: auto;
     width: 85%;
     opacity: 1;
@@ -90,7 +90,7 @@
   .letter-cell.is-fading {
     opacity: 0;
     transform: scale(0.86);
-    color: rgba(155, 109, 255, 0.05);
+    color: rgba(255, 255, 255, 0.02);
   }
 
   /* —— Landing —— */
@@ -318,6 +318,20 @@
     cursor: pointer;
     touch-action: manipulation;
   }
+  .admin-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    padding: 0.4rem 0.7rem 0.4rem 0.35rem;
+    color: var(--sonic-bright);
+    border-color: transparent;
+    font-weight: 550;
+  }
+  .admin-back svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
 
   /* —— Browse —— */
   .browse-top {
@@ -381,28 +395,28 @@
     appearance: none;
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
-    background: transparent;
-    border: none;
-    color: var(--sonic-bright);
-    border-radius: 10px;
-    padding: 0.35rem 0.2rem 0.35rem 0.45rem;
-    font-size: 0.95rem;
-    font-weight: 500;
+    gap: 0.4rem;
+    background: rgba(27, 159, 255, 0.14);
+    border: 1px solid rgba(78, 195, 255, 0.28);
+    color: var(--text);
+    border-radius: 999px;
+    padding: 0.38rem 0.75rem;
+    font-size: 0.84rem;
+    font-weight: 650;
     cursor: pointer;
     white-space: nowrap;
   }
-  .filter-toggle:active { opacity: 0.65; }
-  .filter-toggle-label { line-height: 1; }
-  .filter-chevron {
-    width: 18px;
-    height: 18px;
+  .filter-toggle:active { transform: scale(0.97); }
+  .filter-toggle-label { line-height: 1; color: var(--sonic-bright); }
+  .filter-icon {
+    width: 16px;
+    height: 16px;
     display: block;
-    transition: transform 0.25s ease;
     flex-shrink: 0;
+    color: var(--sonic-bright);
   }
-  .browse-top.filters-collapsed .filter-chevron {
-    transform: rotate(-90deg);
+  .filter-toggle[aria-expanded="false"] {
+    background: rgba(27, 159, 255, 0.08);
   }
 
   .filter-panel {
@@ -739,7 +753,6 @@
     <div class="letter-grid" id="letterGrid" aria-hidden="true"></div>
     <header class="landing-header">
       <h1>Lidu Letters</h1>
-      <p>Tap a bubble to peek at an answer</p>
     </header>
     <div class="bubble-stage" id="bubbleStage" aria-live="polite">
       <button type="button" class="bubble-backdrop" id="bubbleBackdrop" aria-label="Close bubble"></button>
@@ -764,11 +777,11 @@
         </div>
         <h2>Questions</h2>
         <div class="browse-nav-end">
-          <button class="filter-toggle" id="filterToggle" type="button" aria-expanded="true" aria-controls="filterPanel" title="Hide filters">
-            <span class="filter-toggle-label">Filters</span>
-            <svg class="filter-chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path fill="currentColor" d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
+          <button class="filter-toggle" id="filterToggle" type="button" aria-expanded="true" aria-controls="filterPanel" title="Show or hide filters">
+            <svg class="filter-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path fill="currentColor" d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
             </svg>
+            <span class="filter-toggle-label">Filters</span>
           </button>
         </div>
       </div>
@@ -821,7 +834,12 @@
       <div class="admin-panel-view" id="adminAdd">
         <div class="admin-card">
           <div class="admin-nav-row" style="margin-bottom:0.85rem">
-            <button class="btn-ghost" type="button" data-admin="menu">← Admin menu</button>
+            <button class="btn-ghost admin-back" type="button" data-admin="menu">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path fill="currentColor" d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+              </svg>
+              Admin menu
+            </button>
           </div>
           <h2 id="formTitle">Add entry</h2>
           <div class="form-group">
@@ -854,7 +872,7 @@
             <div class="form-group-title">Extra details</div>
             <div class="form-row">
               <label for="adminTags">Tags</label>
-              <input type="text" id="adminTags" autocomplete="off">
+              <input type="text" id="adminTags" autocomplete="off" placeholder="Separate by commas" title="Separate by commas">
             </div>
             <div class="form-row">
               <label for="adminMore">More / references</label>
@@ -871,7 +889,12 @@
       <div class="admin-panel-view" id="adminEditList">
         <div class="admin-card">
           <div class="admin-nav-row" style="margin-bottom:0.85rem">
-            <button class="btn-ghost" type="button" data-admin="menu">← Admin menu</button>
+            <button class="btn-ghost admin-back" type="button" data-admin="menu">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path fill="currentColor" d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+              </svg>
+              Admin menu
+            </button>
           </div>
           <h2>Edit entries</h2>
           <div class="edit-list" id="editList"></div>
@@ -1252,8 +1275,6 @@ function setFiltersCollapsed(collapsed) {
   browseTop.classList.toggle("filters-collapsed", collapsed);
   filterToggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
   filterToggle.title = collapsed ? "Show filters" : "Hide filters";
-  const label = filterToggle.querySelector(".filter-toggle-label");
-  if (label) label.textContent = "Filters";
 }
 
 function openBrowse() {
@@ -1483,8 +1504,8 @@ function buildLetterGrid() {
     const cell = document.createElement("span");
     cell.className = "letter-cell";
     cell.textContent = randomLetter();
-    // Slight staggered resting opacity via inline delay feel
-    if (Math.random() < 0.18) cell.style.opacity = "0.35";
+    // Keep within ~10% white — vary slightly so the grid feels alive
+    cell.style.color = `rgba(255, 255, 255, ${(0.055 + Math.random() * 0.045).toFixed(3)})`;
     grid.appendChild(cell);
     letterCells.push(cell);
   }
@@ -1495,6 +1516,7 @@ function pulseLetterCell(cell) {
   cell.classList.add("is-fading");
   window.setTimeout(() => {
     cell.textContent = randomLetter();
+    cell.style.color = `rgba(255, 255, 255, ${(0.055 + Math.random() * 0.045).toFixed(3)})`;
     cell.classList.remove("is-fading");
   }, 1200 + Math.random() * 600);
 }
