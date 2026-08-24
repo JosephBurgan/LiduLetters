@@ -7,7 +7,7 @@
 <meta name="description" content="Lidu Letters — questions answered through letterboard">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<meta name="lidu-build" content="20260824i">
+<meta name="lidu-build" content="20260824j">
 <title>Lidu Letters</title>
 <style>
   :root {
@@ -906,11 +906,11 @@
   <!-- ABOUT -->
   <section class="view" id="viewAbout" aria-label="About Lidu Letters">
     <div class="about-shell">
-      <button class="back-btn" id="aboutBack" type="button" aria-label="Back to bubbles">
+      <button class="back-btn" id="aboutBack" type="button" aria-label="Back to home">
         <svg class="back-chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path fill="currentColor" d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
         </svg>
-        <span>Bubbles</span>
+        <span>Home</span>
       </button>
       <h1>ABOUT LIDU LETTERS</h1>
 
@@ -923,20 +923,20 @@
         <h2>Who is Lidu?</h2>
         <p>Lidu (Liduvina) Burgoin is a nonspeaking autistic teenager who communicates by spelling on a letterboard. Her mother, Dalia Burgoin, has shared publicly that Lidu began communicating with her telepathically, and that letterboard spelling became a way to bring those messages into clear words.</p>
         <p>Dalia has described Lidu as one of the nonspeaking autistic children in the same broader conversation popularized by <em>The Telepathy Tapes</em> — a podcast exploring reports of telepathy among nonspeaking autistic people.</p>
-        <p>According to Dalia, Lidu also speaks about “teachers” and other helpful beings, and has encouraged teaching practices like Mindsight as a doorway toward wider openness to telepathy.</p>
       </div>
 
       <div class="about-card">
         <h2>Where can I learn more?</h2>
         <ul>
           <li><a href="https://www.youtube.com/watch?v=P1MMoJGbU88" target="_blank" rel="noopener noreferrer">Acid For Squares — Dalia Burgoin interview (YouTube)</a></li>
-          <li>Also on Spotify and other podcast apps as Acid For Squares with Dalia Burgoin</li>
           <li><a href="https://www.thetelepathytapes.com/" target="_blank" rel="noopener noreferrer">The Telepathy Tapes</a></li>
         </ul>
-        <p>This site collects letterboard Q&amp;A from events and trainings. It is not medical advice, and it is not a substitute for hearing Lidu and Dalia in their own words.</p>
       </div>
 
-      <button class="btn-main" id="aboutToBrowse" type="button">Browse all questions</button>
+      <div class="loop-actions" style="margin-top:1rem">
+        <button class="btn-main" id="aboutToBrowse" type="button">Browse all questions</button>
+        <button class="btn-ghost" id="aboutToHome" type="button">Main Page</button>
+      </div>
     </div>
   </section>
 
@@ -1133,7 +1133,13 @@ function showView(name) {
   viewBrowse.classList.toggle("active", name === "browse");
   viewAbout.classList.toggle("active", name === "about");
   viewAdmin.classList.toggle("active", name === "admin");
+  document.body.style.overflow = name === "landing" ? "hidden" : "";
   window.scrollTo(0, 0);
+  if (name === "landing") {
+    requestAnimationFrame(() => {
+      clampBubblesInStage();
+    });
+  }
 }
 
 function showAdminPanel(id) {
@@ -1302,6 +1308,11 @@ function renderBubbles() {
     bindBubbleGesture(anchor);
     bubbleStage.appendChild(anchor);
   });
+
+  requestAnimationFrame(() => {
+    clampBubblesInStage();
+    requestAnimationFrame(clampBubblesInStage);
+  });
 }
 
 document.getElementById("bubbleBackdrop").addEventListener("click", () => clearCentered(true));
@@ -1456,6 +1467,7 @@ document.getElementById("browseBtn").addEventListener("click", openBrowse);
 document.getElementById("reshuffleBtn").addEventListener("click", renderBubbles);
 document.getElementById("aboutBtn").addEventListener("click", () => showView("about"));
 document.getElementById("aboutBack").addEventListener("click", () => showView("landing"));
+document.getElementById("aboutToHome").addEventListener("click", () => showView("landing"));
 document.getElementById("aboutToBrowse").addEventListener("click", openBrowse);
 document.getElementById("backHome").addEventListener("click", () => showView("landing"));
 document.getElementById("backBubblesBtn").addEventListener("click", () => showView("landing"));
