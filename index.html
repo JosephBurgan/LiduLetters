@@ -7,7 +7,7 @@
 <meta name="description" content="Lidu Letters — questions answered through letterboard">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<meta name="lidu-build" content="20260824s">
+<meta name="lidu-build" content="20260824t">
 <title>Lidu Letters</title>
 <!--
   Lidu Letters — single-file mobile app.
@@ -995,13 +995,26 @@
   <section class="view" id="viewAdmin" aria-label="Admin">
     <div class="admin-shell">
       <h1>Admin</h1>
-      <p class="sub">Add and edit letterboard entries. Public visitors never see this screen.</p>
+      <p class="sub">Add and edit letterboard entries. Public visitors never see this screen. Saves publish to GitHub so phones and laptops share one list.</p>
 
       <div class="admin-panel-view active" id="adminMenu">
         <div class="admin-menu">
           <button class="btn-main" type="button" data-admin="add">Add entry</button>
           <button class="btn-ghost" type="button" data-admin="edit-list">Edit entries</button>
           <button class="btn-ghost" type="button" id="adminExit">Back to site</button>
+        </div>
+        <div class="admin-card" style="margin-top:1.1rem">
+          <div class="form-group-title">Publish to site</div>
+          <p class="sub">Create a GitHub fine-grained token with <strong>Contents: Read and write</strong> on <code>JosephBurgan/LiduLetters</code>. Stored only on this device.</p>
+          <div class="form-row">
+            <label for="adminToken">GitHub token</label>
+            <input type="password" id="adminToken" autocomplete="off">
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-secondary" id="saveTokenBtn" type="button">Save token on this device</button>
+            <button class="btn btn-primary" id="publishBtn" type="button">Publish now</button>
+          </div>
+          <p class="sub" id="publishStatus"></p>
         </div>
       </div>
 
@@ -1058,7 +1071,7 @@
             </div>
           </div>
           <div class="form-actions">
-            <button class="btn btn-primary" id="saveBtn" type="button">Save</button>
+            <button class="btn btn-primary" id="saveBtn" type="button">Save &amp; publish</button>
             <button class="btn btn-secondary" id="cancelEdit" type="button" style="display:none">Cancel</button>
           </div>
         </div>
@@ -1137,12 +1150,11 @@ function migrateItem(d) {
   return item;
 }
 
-const stored = localStorage.getItem("liduData");
-let data = stored ? JSON.parse(stored).map(migrateItem) : defaultData.map(d => ({ ...d }));
-if (!Array.isArray(data) || data.length === 0) data = defaultData.map(d => ({ ...d }));
-// Persist migrations (home flags, split location/event, retitled messages).
-try { localStorage.setItem("liduData", JSON.stringify(data)); } catch (_) {}
+const GH_OWNER = "JosephBurgan";
+const GH_REPO = "LiduLetters";
+const GH_FILE = "data.json";
 
+let data = defaultData.map(d => ({ ...d }));
 let nextId = Math.max(0, ...data.map(d => d.id)) + 1;
 let editingId = null;
 let sortMode = "topic";
@@ -1168,7 +1180,96 @@ const cancelEdit = document.getElementById("cancelEdit");
 
 // —— Data helpers ——
 function saveData() {
-  localStorage.setItem("liduData", JSON.stringify(data));
+  try { localStorage.setItem("liduData", JSON.stringify(data)); } catch (_) {}
+}
+
+function getGithubToken() {
+  return (localStorage.getItem("liduGithubToken") || "").trim();
+}
+
+function setPublishStatus(msg) {
+  const el = document.getElementById("publishStatus");
+  if (el) el.textContent = msg || "";
+}
+
+function unicodeB64(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = "";
+  bytes.forEach(b => { bin += String.fromCharCode(b); });
+  return btoa(bin);
+}
+
+async function publishData() {
+  const token = getGithubToken();
+  if (!token) {
+    setPublishStatus("Saved on this device only. Add a GitHub token to publish so other phones/laptops see it.");
+    return false;
+  }
+  setPublishStatus("Publishing to GitHub…");
+  const headers = {
+    Authorization: "Bearer " + token,
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28"
+  };
+  const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}`;
+  const getRes = await fetch(url, { headers });
+  let sha;
+  if (getRes.ok) {
+    const meta = await getRes.json();
+    sha = meta.sha;
+  } else if (getRes.status !== 404) {
+    setPublishStatus("Could not read data.json from GitHub (" + getRes.status + "). Check the token.");
+    return false;
+  }
+  const body = JSON.stringify(data, null, 2) + "\n";
+  const putRes = await fetch(url, {
+    method: "PUT",
+    headers: { ...headers, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      message: "Update letterboard entries from admin",
+      content: unicodeB64(body),
+      branch: "main",
+      sha
+    })
+  });
+  if (!putRes.ok) {
+    setPublishStatus("Publish failed (" + putRes.status + "). Token needs Contents: Read and write on this repo.");
+    return false;
+  }
+  setPublishStatus("Published. Phones may take a minute for GitHub Pages to update.");
+  return true;
+}
+
+async function loadEntries() {
+  let remote = [];
+  try {
+    const res = await fetch("data.json?t=" + Date.now(), { cache: "no-store" });
+    if (res.ok) remote = await res.json();
+  } catch (_) {}
+  if (!Array.isArray(remote) || !remote.length) remote = defaultData.map(d => ({ ...d }));
+  remote = remote.map(migrateItem);
+
+  let local = [];
+  try {
+    const raw = localStorage.getItem("liduData");
+    if (raw) local = JSON.parse(raw).map(migrateItem);
+  } catch (_) {}
+
+  // Remote file is canonical; keep any extra ids that only exist in this browser
+  // (e.g. an entry saved before publish existed) so they can still be published.
+  const remoteIds = new Set(remote.map(d => d.id));
+  const extras = local.filter(d => d && d.id && !remoteIds.has(d.id));
+  data = extras.length ? remote.concat(extras) : remote;
+  nextId = Math.max(0, ...data.map(d => d.id)) + 1;
+  saveData();
+  if (extras.length) {
+    setPublishStatus(extras.length + " unpublished " + (extras.length === 1 ? "entry" : "entries") + " on this device. Click Publish now to send them to the live site.");
+  }
+  renderBubbles();
+  if (viewBrowse.classList.contains("active")) {
+    renderChips();
+    renderList();
+  }
 }
 
 function escapeHtml(str) {
@@ -1739,6 +1840,7 @@ document.getElementById("editList").addEventListener("click", (e) => {
       saveData();
       renderEditList();
       renderBubbles();
+      publishData();
     }
   }
 });
@@ -1769,7 +1871,31 @@ saveBtn.addEventListener("click", () => {
   clearForm();
   showAdminPanel("adminMenu");
   renderBubbles();
-  alert("Saved.");
+  publishData().then(ok => {
+    if (ok) alert("Saved and published. The live site (including phones) updates after GitHub Pages refreshes — usually under a minute.");
+    else alert("Saved on this device. Add a GitHub token on the Admin menu and click Publish now so other devices can see it.");
+  }).catch(err => {
+    alert("Saved on this device, but publish failed: " + (err && err.message ? err.message : err));
+  });
+});
+
+document.getElementById("saveTokenBtn").addEventListener("click", () => {
+  const token = document.getElementById("adminToken").value.trim();
+  if (!token) {
+    localStorage.removeItem("liduGithubToken");
+    setPublishStatus("Token cleared on this device.");
+    return;
+  }
+  localStorage.setItem("liduGithubToken", token);
+  setPublishStatus("Token saved on this device only.");
+});
+
+document.getElementById("publishBtn").addEventListener("click", () => {
+  publishData().then(ok => {
+    if (!ok && !getGithubToken()) alert("Paste a GitHub token first, then Save token on this device.");
+  }).catch(err => {
+    setPublishStatus("Publish failed: " + (err && err.message ? err.message : err));
+  });
 });
 
 cancelEdit.addEventListener("click", () => {
@@ -1961,10 +2087,13 @@ window.addEventListener("resize", () => {
 });
 
 routeFromHash();
-renderBubbles();
 wireAutosizeFields();
 startLetterAtmosphere();
 spellTitle();
+if (document.getElementById("adminToken")) {
+  document.getElementById("adminToken").value = getGithubToken();
+}
+loadEntries();
 </script>
 </body>
 </html>

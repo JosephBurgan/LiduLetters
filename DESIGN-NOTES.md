@@ -80,6 +80,13 @@ Shareable live URL: https://josephburgan.github.io/LiduLetters/
 - Keep About copy lean: no extra Spotify bullet; no long disclaimer footer; no third “Who is Lidu” paragraph about teachers/Mindsight unless product asks to restore it.
 - Align Home back control with the title’s left margin.
 
+## Data / publishing
+
+- Public list is **`data.json`** in the repo — not `localStorage` alone (that is per-browser, which is why a desktop save did not appear on a phone).
+- Admin **Save & publish** writes `data.json` via the GitHub Contents API using a token stored only on that device.
+- On load: fetch `data.json`, then merge any extra ids that exist only in this browser so unpublished desktop entries can still be published.
+- Token never belongs in the repo.
+
 ## Admin (`#admin`)
 
 - Not shown on the public UI (no floating `+`). Open via hash `#admin`.
