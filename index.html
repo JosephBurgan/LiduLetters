@@ -7,7 +7,7 @@
 <meta name="description" content="Lidu Letters — questions answered through letterboard">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<meta name="lidu-build" content="20260824e">
+<meta name="lidu-build" content="20260824f">
 <title>Lidu Letters</title>
 <style>
   :root {
@@ -77,7 +77,7 @@
     font-weight: 700;
     font-size: clamp(0.75rem, 2.6vw, 1.05rem);
     letter-spacing: 0.02em;
-    color: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.08);
     border-radius: 999px;
     aspect-ratio: 1;
     max-height: 2.5rem;
@@ -90,7 +90,7 @@
   .letter-cell.is-fading {
     opacity: 0;
     transform: scale(0.86);
-    color: rgba(255, 255, 255, 0.01);
+    color: rgba(255, 255, 255, 0.015);
   }
 
   /* —— Landing —— */
@@ -104,10 +104,20 @@
     letter-spacing: 0.04em;
     text-transform: uppercase;
     min-height: 1.2em;
+    white-space: nowrap;
+  }
+  .landing-header h1 .title-char {
+    display: inline-block;
+    opacity: 0;
+    transition: opacity 0.14s linear;
     background: linear-gradient(120deg, var(--sonic-bright), var(--purple-soft), var(--green-soft));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+  .landing-header h1 .title-char.is-on {
+    opacity: 1;
   }
 
   .bubble-stage {
@@ -1502,7 +1512,7 @@ function buildLetterGrid() {
     cell.className = "letter-cell";
     cell.textContent = randomLetter();
     // Keep within ~10% white — vary slightly so the grid feels alive
-    cell.style.color = `rgba(255, 255, 255, ${(0.03 + Math.random() * 0.02).toFixed(3)})`;
+    cell.style.color = `rgba(255, 255, 255, ${(0.06 + Math.random() * 0.02).toFixed(3)})`;
     grid.appendChild(cell);
     letterCells.push(cell);
   }
@@ -1513,7 +1523,7 @@ function pulseLetterCell(cell) {
   cell.classList.add("is-fading");
   window.setTimeout(() => {
     cell.textContent = randomLetter();
-    cell.style.color = `rgba(255, 255, 255, ${(0.03 + Math.random() * 0.02).toFixed(3)})`;
+    cell.style.color = `rgba(255, 255, 255, ${(0.06 + Math.random() * 0.02).toFixed(3)})`;
     cell.classList.remove("is-fading");
   }, 1200 + Math.random() * 600);
 }
@@ -1525,34 +1535,40 @@ function startLetterAtmosphere() {
   }
   buildLetterGrid();
   if (letterTimer) window.clearInterval(letterTimer);
-  // Same slow fade as before; change more cells, more often
+  // Slow fade kept; frequency ~3x original for finding the busy extreme
   letterTimer = window.setInterval(() => {
     if (!viewLanding.classList.contains("active") || !letterCells.length) return;
-    const count = 4 + Math.floor(Math.random() * 5); // 4–8 letters per wave
+    const count = 6 + Math.floor(Math.random() * 7); // 6–12 letters per wave
     for (let i = 0; i < count; i++) {
       const cell = letterCells[Math.floor(Math.random() * letterCells.length)];
-      window.setTimeout(() => pulseLetterCell(cell), Math.random() * 320);
+      window.setTimeout(() => pulseLetterCell(cell), Math.random() * 280);
     }
-  }, 450);
+  }, 300);
 }
 
 function spellTitle() {
   const el = document.getElementById("siteTitle");
   if (!el) return;
   const text = "LIDU LETTERS";
+  el.textContent = "";
+  const frag = document.createDocumentFragment();
+  for (const ch of text) {
+    const span = document.createElement("span");
+    span.className = "title-char";
+    span.textContent = ch === " " ? "\u00A0" : ch;
+    frag.appendChild(span);
+  }
+  el.appendChild(frag);
+  const chars = el.querySelectorAll(".title-char");
   if (reduceMotion) {
-    el.textContent = text;
+    chars.forEach(span => span.classList.add("is-on"));
     return;
   }
-  el.textContent = "";
+  // Full title is laid out and centered first; letters only fade in place
   const stepMs = 2000 / text.length;
-  let i = 0;
-  function tick() {
-    i += 1;
-    el.textContent = text.slice(0, i);
-    if (i < text.length) window.setTimeout(tick, stepMs);
-  }
-  window.setTimeout(tick, stepMs);
+  chars.forEach((span, i) => {
+    window.setTimeout(() => span.classList.add("is-on"), stepMs * (i + 1));
+  });
 }
 
 let letterResizeTimer = null;
