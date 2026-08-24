@@ -7,7 +7,7 @@
 <meta name="description" content="Lidu Letters — questions answered through letterboard">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<meta name="lidu-build" content="20260824d">
+<meta name="lidu-build" content="20260824e">
 <title>Lidu Letters</title>
 <style>
   :root {
@@ -77,20 +77,20 @@
     font-weight: 700;
     font-size: clamp(0.75rem, 2.6vw, 1.05rem);
     letter-spacing: 0.02em;
-    color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.05);
     border-radius: 999px;
     aspect-ratio: 1;
     max-height: 2.5rem;
     margin: auto;
     width: 85%;
     opacity: 1;
-    transition: opacity 1.6s ease, color 1.6s ease, transform 1.6s ease;
+    transition: opacity 2.4s ease, color 2.4s ease, transform 2.4s ease;
     transform: scale(1);
   }
   .letter-cell.is-fading {
     opacity: 0;
     transform: scale(0.86);
-    color: rgba(255, 255, 255, 0.02);
+    color: rgba(255, 255, 255, 0.01);
   }
 
   /* —— Landing —— */
@@ -1502,20 +1502,20 @@ function buildLetterGrid() {
     cell.className = "letter-cell";
     cell.textContent = randomLetter();
     // Keep within ~10% white — vary slightly so the grid feels alive
-    cell.style.color = `rgba(255, 255, 255, ${(0.055 + Math.random() * 0.045).toFixed(3)})`;
+    cell.style.color = `rgba(255, 255, 255, ${(0.03 + Math.random() * 0.02).toFixed(3)})`;
     grid.appendChild(cell);
     letterCells.push(cell);
   }
 }
 
 function pulseLetterCell(cell) {
-  if (!cell) return;
+  if (!cell || cell.classList.contains("is-fading")) return;
   cell.classList.add("is-fading");
   window.setTimeout(() => {
     cell.textContent = randomLetter();
-    cell.style.color = `rgba(255, 255, 255, ${(0.055 + Math.random() * 0.045).toFixed(3)})`;
+    cell.style.color = `rgba(255, 255, 255, ${(0.03 + Math.random() * 0.02).toFixed(3)})`;
     cell.classList.remove("is-fading");
-  }, 800 + Math.random() * 400);
+  }, 1200 + Math.random() * 600);
 }
 
 function startLetterAtmosphere() {
@@ -1525,15 +1525,15 @@ function startLetterAtmosphere() {
   }
   buildLetterGrid();
   if (letterTimer) window.clearInterval(letterTimer);
+  // Same slow fade as before; change more cells, more often
   letterTimer = window.setInterval(() => {
     if (!viewLanding.classList.contains("active") || !letterCells.length) return;
-    const count = 1 + Math.floor(Math.random() * 3);
+    const count = 4 + Math.floor(Math.random() * 5); // 4–8 letters per wave
     for (let i = 0; i < count; i++) {
       const cell = letterCells[Math.floor(Math.random() * letterCells.length)];
-      // Stagger each pick slightly so they don't all pulse in lockstep
-      window.setTimeout(() => pulseLetterCell(cell), Math.random() * 280);
+      window.setTimeout(() => pulseLetterCell(cell), Math.random() * 320);
     }
-  }, 730);
+  }, 450);
 }
 
 function spellTitle() {
