@@ -61,7 +61,8 @@ Shareable live URL: https://josephburgan.github.io/LiduLetters/
 - Expanded bubble opens to the **vertical center** of the bubble stage (not the top).
 - On wide screens, keep the bubble field roughly as wide as the footer buttons (~420–460px) so bubbles are not horizontally sparse.
 - Browse: **two independent columns** at about ≥1280px wide (~⅔ of 1920) — not one CSS grid of shared rows, so a tall expanded card must not open a gap in the other column. One column below that breakpoint.
-- Home title must always appear; spell-in animation has a safety reveal so LIDU LETTERS cannot stay invisible.
+- Home title must always appear. Re-spell **LIDU LETTERS** every time Home is shown (not when reshuffling bubbles).
+- Never run title gradient measurement while Home is `display: none` — zero-width sync makes `background-clip: text` glyphs invisible but still highlightable (intermittent desktop bug).
 - Title gradient is sized to the **glyph run**, not the window (`h1` is `inline-block`).
 - “Change topic / filter” **toggles** the Filters panel (open and close).
 

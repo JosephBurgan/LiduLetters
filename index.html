@@ -7,7 +7,7 @@
 <meta name="description" content="Lidu Letters — questions answered through letterboard">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<meta name="lidu-build" content="20260824r">
+<meta name="lidu-build" content="20260824s">
 <title>Lidu Letters</title>
 <!--
   Lidu Letters — single-file mobile app.
@@ -1197,7 +1197,14 @@ function showView(name) {
   document.body.style.overflow = name === "landing" ? "hidden" : "";
   window.scrollTo(0, 0);
   if (name === "landing") {
-    requestAnimationFrame(() => layoutBubblesInStage());
+    // Re-spell every time Home is shown. Leaving mid-spell used to leave
+    // transparent glyphs after a zero-width gradient sync while hidden.
+    requestAnimationFrame(() => {
+      spellTitle();
+      layoutBubblesInStage();
+    });
+  } else {
+    clearTitleSpellTimers();
   }
 }
 
@@ -1851,14 +1858,31 @@ function startLetterAtmosphere() {
   }, 300);
 }
 
+let titleSpellTimers = [];
+
+function clearTitleSpellTimers() {
+  titleSpellTimers.forEach(id => window.clearTimeout(id));
+  titleSpellTimers = [];
+}
+
+function scheduleTitleTimer(fn, ms) {
+  const id = window.setTimeout(fn, ms);
+  titleSpellTimers.push(id);
+  return id;
+}
+
 function syncTitleGradient() {
   const el = document.getElementById("siteTitle");
   if (!el) return;
+  // Never measure while Home is hidden — zero widths permanently break
+  // background-clip text (invisible until highlight). Root cause of the
+  // intermittent "title gone after Browse/About then Home" bug.
+  if (!viewLanding.classList.contains("active")) return;
   const chars = [...el.querySelectorAll(".title-char")];
   if (!chars.length) return;
-  // Sum glyph widths so the gradient tracks the title, not the window/header.
   const widths = chars.map(span => span.getBoundingClientRect().width);
-  const total = Math.max(1, widths.reduce((a, b) => a + b, 0));
+  const total = widths.reduce((a, b) => a + b, 0);
+  if (total < 2) return;
   let x = 0;
   chars.forEach((span, i) => {
     span.style.backgroundSize = total + "px 100%";
@@ -1869,8 +1893,10 @@ function syncTitleGradient() {
 
 function spellTitle() {
   // Lay out full LIDU LETTERS centered first, then fade letters in-place over ~2s (no caret).
+  // Called on every visit to Home; not called by "Show different bubbles".
   const el = document.getElementById("siteTitle");
   if (!el) return;
+  clearTitleSpellTimers();
   const text = "LIDU LETTERS";
   el.textContent = "";
   el.classList.remove("is-visible");
@@ -1891,20 +1917,26 @@ function spellTitle() {
   };
 
   requestAnimationFrame(() => {
-    syncTitleGradient();
-    if (reduceMotion) {
-      revealAll();
-      return;
-    }
-    const stepMs = 2000 / text.length;
-    chars.forEach((span, i) => {
-      window.setTimeout(() => {
-        span.classList.add("is-on");
-        if (i === chars.length - 1) el.classList.add("is-visible");
-      }, stepMs * (i + 1));
+    requestAnimationFrame(() => {
+      syncTitleGradient();
+      if (reduceMotion) {
+        revealAll();
+        return;
+      }
+      const stepMs = 2000 / text.length;
+      chars.forEach((span, i) => {
+        scheduleTitleTimer(() => {
+          if (!viewLanding.classList.contains("active")) return;
+          span.classList.add("is-on");
+          if (i === chars.length - 1) {
+            el.classList.add("is-visible");
+            syncTitleGradient();
+          }
+        }, stepMs * (i + 1));
+      });
+      // Safety reveal if anything interrupts the per-letter timers.
+      scheduleTitleTimer(revealAll, 2200);
     });
-    // Safety: never leave the home title blank if a timer is interrupted.
-    window.setTimeout(revealAll, 2200);
   });
 }
 
@@ -1914,8 +1946,10 @@ window.addEventListener("resize", () => {
   window.clearTimeout(letterResizeTimer);
   letterResizeTimer = window.setTimeout(() => {
     buildLetterGrid();
-    syncTitleGradient();
-    if (viewLanding.classList.contains("active")) layoutBubblesInStage();
+    if (viewLanding.classList.contains("active")) {
+      syncTitleGradient();
+      layoutBubblesInStage();
+    }
     const twoCol = window.matchMedia("(min-width: 1280px)").matches;
     if (twoCol !== lastBrowseTwoCol && viewBrowse.classList.contains("active")) {
       lastBrowseTwoCol = twoCol;
