@@ -7,7 +7,7 @@
 <meta name="description" content="Lidu Letters — questions answered through letterboard">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<meta name="lidu-build" content="20260824k">
+<meta name="lidu-build" content="20260824m">
 <title>Lidu Letters</title>
 <style>
   :root {
@@ -494,27 +494,31 @@
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    background: rgba(27, 159, 255, 0.14);
-    border: 1px solid rgba(78, 195, 255, 0.28);
-    color: var(--text);
+    border: 1px solid transparent;
     border-radius: 999px;
-    padding: 0.38rem 0.75rem;
+    padding: 0.4rem 0.8rem;
     font-size: 0.84rem;
-    font-weight: 650;
+    font-weight: 700;
     cursor: pointer;
     white-space: nowrap;
+    color: #041018;
+    background: linear-gradient(120deg, var(--sonic-bright), var(--purple-soft));
+    box-shadow: 0 4px 14px var(--glow);
   }
   .filter-toggle:active { transform: scale(0.97); }
-  .filter-toggle-label { line-height: 1; color: var(--sonic-bright); }
+  .filter-toggle-label { line-height: 1; color: inherit; }
   .filter-icon {
     width: 16px;
     height: 16px;
     display: block;
     flex-shrink: 0;
-    color: var(--sonic-bright);
+    color: inherit;
   }
+  /* Collapsed = quieter, but same blue→purple family */
   .filter-toggle[aria-expanded="false"] {
-    background: rgba(27, 159, 255, 0.08);
+    color: var(--text);
+    background: linear-gradient(120deg, rgba(27, 159, 255, 0.28), rgba(155, 109, 255, 0.22));
+    box-shadow: inset 0 0 0 1px rgba(78, 195, 255, 0.3);
   }
 
   .filter-panel {
@@ -629,9 +633,11 @@
     cursor: pointer;
   }
   .chip.active {
-    border-color: var(--green);
-    color: var(--green-soft);
-    background: rgba(61, 255, 154, 0.08);
+    border-color: transparent;
+    color: #041018;
+    font-weight: 700;
+    background: linear-gradient(120deg, var(--sonic-bright), var(--purple-soft));
+    box-shadow: 0 3px 12px var(--glow);
   }
 
   .browse-body {
@@ -1152,6 +1158,7 @@ function showView(name) {
   if (name === "landing") {
     requestAnimationFrame(() => {
       clampBubblesInStage();
+      centerBubbleCluster();
     });
   }
 }
@@ -1172,22 +1179,22 @@ function shuffle(arr) {
 }
 
 function bubbleLayout(count) {
-  // Keep tops low enough that collapsed bubbles stay above the footer
+  // Spread through the middle band; centerBubbleCluster fine-tunes vertical balance
   const presets = [
     [
-      {t:3, side:"left"}, {t:5, side:"right"},
-      {t:24, side:"left"}, {t:28, side:"right"},
-      {t:46, side:"left"}, {t:50, side:"right"}
+      {t:8, side:"left"}, {t:12, side:"right"},
+      {t:34, side:"left"}, {t:38, side:"right"},
+      {t:58, side:"left"}, {t:62, side:"right"}
     ],
     [
-      {t:4, side:"right"}, {t:7, side:"left"},
-      {t:26, side:"right"}, {t:30, side:"left"},
-      {t:48, side:"right"}, {t:52, side:"left"}
+      {t:10, side:"right"}, {t:14, side:"left"},
+      {t:36, side:"right"}, {t:40, side:"left"},
+      {t:60, side:"right"}, {t:64, side:"left"}
     ],
     [
-      {t:2, side:"left"}, {t:8, side:"right"},
-      {t:22, side:"left"}, {t:32, side:"right"},
-      {t:44, side:"left"}, {t:49, side:"right"}
+      {t:6, side:"left"}, {t:16, side:"right"},
+      {t:32, side:"left"}, {t:42, side:"right"},
+      {t:56, side:"left"}, {t:66, side:"right"}
     ]
   ];
   return presets[Math.floor(Math.random() * presets.length)].slice(0, count);
@@ -1196,17 +1203,46 @@ function bubbleLayout(count) {
 function clampBubblesInStage() {
   const stageRect = bubbleStage.getBoundingClientRect();
   if (!stageRect.height) return;
-  bubbleStage.querySelectorAll(".bubble-anchor:not(.centered)").forEach(anchor => {
+  const anchors = [...bubbleStage.querySelectorAll(".bubble-anchor:not(.centered)")];
+  anchors.forEach(anchor => {
     const rect = anchor.getBoundingClientRect();
     const overflowBottom = rect.bottom - (stageRect.bottom - 6);
     const overflowTop = stageRect.top + 4 - rect.top;
     let topPct = parseFloat(anchor.style.top) || parseFloat(anchor.dataset.homeTop) || 0;
     if (overflowBottom > 0) topPct -= (overflowBottom / stageRect.height) * 100;
     if (overflowTop > 0) topPct += (overflowTop / stageRect.height) * 100;
-    topPct = Math.max(1, Math.min(topPct, 62));
+    topPct = Math.max(1, Math.min(topPct, 70));
     anchor.style.top = topPct + "%";
     anchor.dataset.homeTop = String(topPct);
   });
+}
+
+function centerBubbleCluster() {
+  const stageRect = bubbleStage.getBoundingClientRect();
+  if (!stageRect.height) return;
+  const anchors = [...bubbleStage.querySelectorAll(".bubble-anchor:not(.centered)")];
+  if (!anchors.length) return;
+
+  let minTop = Infinity;
+  let maxBottom = -Infinity;
+  anchors.forEach(anchor => {
+    const rect = anchor.getBoundingClientRect();
+    minTop = Math.min(minTop, rect.top);
+    maxBottom = Math.max(maxBottom, rect.bottom);
+  });
+
+  const clusterCenter = (minTop + maxBottom) / 2;
+  const stageCenter = stageRect.top + stageRect.height / 2;
+  const deltaPct = ((stageCenter - clusterCenter) / stageRect.height) * 100;
+  if (Math.abs(deltaPct) < 0.4) return;
+
+  anchors.forEach(anchor => {
+    let topPct = parseFloat(anchor.style.top) || parseFloat(anchor.dataset.homeTop) || 0;
+    topPct += deltaPct;
+    anchor.style.top = topPct + "%";
+    anchor.dataset.homeTop = String(topPct);
+  });
+  clampBubblesInStage();
 }
 
 function clearCentered(animateBack = true) {
@@ -1328,7 +1364,11 @@ function renderBubbles() {
 
   requestAnimationFrame(() => {
     clampBubblesInStage();
-    requestAnimationFrame(clampBubblesInStage);
+    centerBubbleCluster();
+    requestAnimationFrame(() => {
+      clampBubblesInStage();
+      centerBubbleCluster();
+    });
   });
 }
 
