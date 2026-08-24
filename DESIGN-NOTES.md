@@ -67,7 +67,7 @@ Shareable live URL: https://josephburgan.github.io/LiduLetters/
 ## Browse (Questions)
 
 - Sort hierarchy: **Topic / Event / Date** are primary; chips below are secondary filters.
-- **Filters** panel collapses so scrolling the list stays clean; “Change topic / filter” **expands filters only** (no scroll-to-top jump).
+- **Filters** panel collapses so scrolling the list stays clean; “Change topic / filter” **toggles** open/closed (no scroll-to-top jump).
 - Event/date under each **question** is optional (checkbox, **off by default**) — avoids duplicate meta under question + answer.
 - When that checkbox is off, meta appears once under the expanded answer.
 - Search exists in Filters; keep it simple (substring). Smart/fuzzy search was deferred.
