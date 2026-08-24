@@ -7,7 +7,7 @@
 <meta name="description" content="Lidu Letters — questions answered through letterboard">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<meta name="lidu-build" content="20260824c">
+<meta name="lidu-build" content="20260824d">
 <title>Lidu Letters</title>
 <style>
   :root {
@@ -84,7 +84,7 @@
     margin: auto;
     width: 85%;
     opacity: 1;
-    transition: opacity 2.4s ease, color 2.4s ease, transform 2.4s ease;
+    transition: opacity 1.6s ease, color 1.6s ease, transform 1.6s ease;
     transform: scale(1);
   }
   .letter-cell.is-fading {
@@ -101,16 +101,13 @@
   .landing-header h1 {
     font-size: clamp(1.85rem, 7vw, 2.4rem);
     font-weight: 800;
-    letter-spacing: -0.03em;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    min-height: 1.2em;
     background: linear-gradient(120deg, var(--sonic-bright), var(--purple-soft), var(--green-soft));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-  }
-  .landing-header p {
-    color: var(--muted);
-    font-size: 0.92rem;
-    margin-top: 0.35rem;
   }
 
   .bubble-stage {
@@ -752,7 +749,7 @@
   <section class="view active" id="viewLanding" aria-label="Featured questions">
     <div class="letter-grid" id="letterGrid" aria-hidden="true"></div>
     <header class="landing-header">
-      <h1>Lidu Letters</h1>
+      <h1 id="siteTitle" aria-label="LIDU LETTERS"></h1>
     </header>
     <div class="bubble-stage" id="bubbleStage" aria-live="polite">
       <button type="button" class="bubble-backdrop" id="bubbleBackdrop" aria-label="Close bubble"></button>
@@ -1518,7 +1515,7 @@ function pulseLetterCell(cell) {
     cell.textContent = randomLetter();
     cell.style.color = `rgba(255, 255, 255, ${(0.055 + Math.random() * 0.045).toFixed(3)})`;
     cell.classList.remove("is-fading");
-  }, 1200 + Math.random() * 600);
+  }, 800 + Math.random() * 400);
 }
 
 function startLetterAtmosphere() {
@@ -1533,9 +1530,29 @@ function startLetterAtmosphere() {
     const count = 1 + Math.floor(Math.random() * 3);
     for (let i = 0; i < count; i++) {
       const cell = letterCells[Math.floor(Math.random() * letterCells.length)];
-      pulseLetterCell(cell);
+      // Stagger each pick slightly so they don't all pulse in lockstep
+      window.setTimeout(() => pulseLetterCell(cell), Math.random() * 280);
     }
-  }, 1100);
+  }, 730);
+}
+
+function spellTitle() {
+  const el = document.getElementById("siteTitle");
+  if (!el) return;
+  const text = "LIDU LETTERS";
+  if (reduceMotion) {
+    el.textContent = text;
+    return;
+  }
+  el.textContent = "";
+  const stepMs = 2000 / text.length;
+  let i = 0;
+  function tick() {
+    i += 1;
+    el.textContent = text.slice(0, i);
+    if (i < text.length) window.setTimeout(tick, stepMs);
+  }
+  window.setTimeout(tick, stepMs);
 }
 
 let letterResizeTimer = null;
@@ -1548,6 +1565,7 @@ routeFromHash();
 renderBubbles();
 wireAutosizeFields();
 startLetterAtmosphere();
+spellTitle();
 </script>
 </body>
 </html>
