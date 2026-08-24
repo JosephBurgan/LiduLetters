@@ -7,7 +7,7 @@
 <meta name="description" content="Lidu Letters — questions answered through letterboard">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<meta name="lidu-build" content="20260824n">
+<meta name="lidu-build" content="20260824o">
 <title>Lidu Letters</title>
 <style>
   :root {
@@ -1176,7 +1176,7 @@ function shuffle(arr) {
 }
 
 function bubbleSlots(count) {
-  // Stable left/right columns with top / mid / bottom rows
+  // Left/right columns with top / mid / bottom rows
   const slots = [
     { side: "left", row: 0 },
     { side: "right", row: 0 },
@@ -1185,7 +1185,6 @@ function bubbleSlots(count) {
     { side: "left", row: 2 },
     { side: "right", row: 2 }
   ];
-  // Occasionally flip which side starts on the left for variety
   if (Math.random() < 0.5) {
     slots.forEach(s => { s.side = s.side === "left" ? "right" : "left"; });
   }
@@ -1207,55 +1206,61 @@ function layoutBubblesInStage() {
   const right = [...bubbleStage.querySelectorAll(".bubble-anchor.side-right:not(.centered)")]
     .sort((a, b) => Number(a.dataset.row) - Number(b.dataset.row));
 
-  // Equal breathing room under the title and above the buttons
-  const margin = Math.max(10, Math.min(28, stageH * 0.07));
+  // Keep familiar top breathing room; lift bottoms a bit more off the buttons
+  const marginTop = Math.max(10, Math.min(26, stageH * 0.07));
+  const marginBottom = Math.max(22, Math.min(48, stageH * 0.13));
 
-  function layoutColumn(anchors) {
+  // Per-column stagger so left/right don't form a rigid grid
+  const columnNudge = {
+    left: (Math.random() * 10) - 3,
+    right: (Math.random() * 10) - 2
+  };
+
+  function layoutColumn(anchors, side) {
     if (!anchors.length) return;
-
-    if (anchors.length === 1) {
-      const h = anchors[0].offsetHeight;
-      setBubbleTopPx(anchors[0], (stageH - h) / 2, stageH);
-      return;
+    const nudge = columnNudge[side] || 0;
+    const heights = anchors.map(a => a.offsetHeight);
+    const n = anchors.length;
+    const totalH = heights.reduce((s, h) => s + h, 0);
+    let free = stageH - marginTop - marginBottom - totalH - nudge;
+    if (free < 8 * Math.max(1, n - 1)) {
+      // Not enough room — shrink bottom margin first, keep top
+      free = Math.max(0, stageH - marginTop - 12 - totalH);
     }
 
-    if (anchors.length === 2) {
-      const topA = anchors[0];
-      const botA = anchors[1];
-      setBubbleTopPx(topA, margin, stageH);
-      setBubbleTopPx(botA, stageH - margin - botA.offsetHeight, stageH);
-      return;
-    }
+    // Size-aware equal gaps between bubbles, with light organic jitter
+    const baseGap = n === 1 ? 0 : free / (n - 1);
+    let y = marginTop + nudge;
 
-    // 3+: top at equal top margin, bottom at equal bottom margin,
-    // middle centered between bottom of top bubble and top of bottom bubble
-    const topA = anchors[0];
-    const botA = anchors[anchors.length - 1];
-    const mids = anchors.slice(1, -1);
-
-    setBubbleTopPx(topA, margin, stageH);
-    setBubbleTopPx(botA, stageH - margin - botA.offsetHeight, stageH);
-
-    // Read laid-out positions
-    const topBottom = topA.offsetTop + topA.offsetHeight;
-    const botTop = botA.offsetTop;
-    const gap = Math.max(0, botTop - topBottom);
-
-    mids.forEach((mid, i) => {
-      const h = mid.offsetHeight;
-      let top;
-      if (mids.length === 1) {
-        top = topBottom + (gap - h) / 2;
-      } else {
-        const slot = gap / (mids.length + 1);
-        top = topBottom + slot * (i + 1) - h / 2;
+    anchors.forEach((anchor, i) => {
+      const h = heights[i];
+      let top = y;
+      // Small vertical wiggle; never enough to collide with neighbors
+      const maxJitter = Math.min(10, baseGap * 0.28);
+      if (n > 1 && maxJitter > 1) {
+        const jitter = (Math.random() * 2 - 1) * maxJitter;
+        top += jitter;
       }
-      setBubbleTopPx(mid, Math.max(margin, top), stageH);
+      // Clamp inside the usable band
+      const minY = marginTop * 0.5;
+      const maxY = stageH - marginBottom * 0.65 - h;
+      top = Math.max(minY, Math.min(top, maxY));
+
+      // Prevent overlap with previous bubble in this column
+      if (i > 0) {
+        const prevBottom = anchors[i - 1].offsetTop + anchors[i - 1].offsetHeight + 8;
+        if (top < prevBottom) top = prevBottom;
+      }
+
+      setBubbleTopPx(anchor, top, stageH);
+      // Force layout so next overlap check uses real offsetTop
+      void anchor.offsetTop;
+      y = top + h + baseGap;
     });
   }
 
-  layoutColumn(left);
-  layoutColumn(right);
+  layoutColumn(left, "left");
+  layoutColumn(right, "right");
 }
 
 function clearCentered(animateBack = true) {
