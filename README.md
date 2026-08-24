@@ -9,6 +9,8 @@ Mobile-first site for letterboard Q&A: speech-bubble home, browse by topic / eve
 
 **Design intent / feedback log:** see [`DESIGN-NOTES.md`](./DESIGN-NOTES.md)
 
+**Google Form + Sheet (for multiple people adding):** see [`GOOGLE-FORM.md`](./GOOGLE-FORM.md)
+
 ## Local preview
 
 Open `index.html` in a browser, or:

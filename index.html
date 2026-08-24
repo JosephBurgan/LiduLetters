@@ -895,6 +895,7 @@
     <div class="landing-footer">
       <button class="btn-ghost" id="reshuffleBtn" type="button">Show different bubbles</button>
       <button class="btn-ghost" id="aboutBtn" type="button">About Lidu</button>
+      <a class="btn-ghost" id="addFormBtn" href="#" target="_blank" rel="noopener noreferrer" style="display:none; text-align:center; text-decoration:none">Add a letter</a>
       <button class="btn-main" id="browseBtn" type="button">Browse all questions</button>
     </div>
   </section>
@@ -986,6 +987,7 @@
 
       <div class="loop-actions" style="margin-top:1rem">
         <button class="btn-main" id="aboutToBrowse" type="button">Browse all questions</button>
+        <a class="btn-ghost" id="aboutAddFormBtn" href="#" target="_blank" rel="noopener noreferrer" style="display:none; text-align:center; text-decoration:none">Add a letter</a>
         <button class="btn-ghost" id="aboutToHome" type="button">Home</button>
       </div>
     </div>
@@ -1238,6 +1240,25 @@ async function publishData() {
   }
   setPublishStatus("Published. Phones may take a minute for GitHub Pages to update.");
   return true;
+}
+
+async function loadSheetConfig() {
+  try {
+    const res = await fetch("google-sheet.json?t=" + Date.now(), { cache: "no-store" });
+    if (!res.ok) return;
+    const cfg = await res.json();
+    const formUrl = (cfg && cfg.formUrl) ? String(cfg.formUrl).trim() : "";
+    ["addFormBtn", "aboutAddFormBtn"].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (formUrl) {
+        el.href = formUrl;
+        el.style.display = "";
+      } else {
+        el.style.display = "none";
+      }
+    });
+  } catch (_) {}
 }
 
 async function loadEntries() {
