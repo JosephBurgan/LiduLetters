@@ -7,7 +7,7 @@
 <meta name="description" content="Lidu Letters — questions answered through letterboard">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<meta name="lidu-build" content="20260824h">
+<meta name="lidu-build" content="20260824i">
 <title>Lidu Letters</title>
 <style>
   :root {
@@ -48,6 +48,8 @@
   .view.active { display: flex; }
   #viewLanding {
     position: relative;
+    height: 100dvh;
+    max-height: 100dvh;
     overflow: hidden;
   }
   #viewLanding > *:not(.letter-grid) {
@@ -95,8 +97,9 @@
 
   /* —— Landing —— */
   .landing-header {
+    flex-shrink: 0;
     text-align: center;
-    padding: 1.4rem 1.2rem 0.6rem;
+    padding: 0.85rem 1.2rem 0.45rem;
   }
   .landing-header h1 {
     font-size: clamp(1.85rem, 7vw, 2.4rem);
@@ -123,10 +126,10 @@
   }
 
   .bubble-stage {
-    flex: 1;
+    flex: 1 1 auto;
     position: relative;
-    min-height: 58vh;
-    margin: 0.35rem 0.75rem 0.85rem;
+    min-height: 0;
+    margin: 0.45rem 0.75rem;
     overflow: hidden;
   }
   .bubble-backdrop {
@@ -302,10 +305,11 @@
   }
 
   .landing-footer {
-    padding: 0.75rem 1.1rem calc(1.1rem + var(--safe-bottom));
+    flex-shrink: 0;
+    padding: 0.45rem 1.1rem calc(0.7rem + var(--safe-bottom));
     display: flex;
     flex-direction: column;
-    gap: 0.65rem;
+    gap: 0.45rem;
     align-items: stretch;
   }
 
@@ -313,8 +317,8 @@
     appearance: none;
     border: none;
     border-radius: 999px;
-    padding: 0.95rem 1.25rem;
-    font-size: 1.02rem;
+    padding: 0.85rem 1.15rem;
+    font-size: 1rem;
     font-weight: 700;
     cursor: pointer;
     color: #041018;
@@ -330,7 +334,7 @@
     border: 1px solid var(--border);
     color: var(--muted);
     border-radius: 999px;
-    padding: 0.65rem 1rem;
+    padding: 0.55rem 1rem;
     font-size: 0.88rem;
     cursor: pointer;
     touch-action: manipulation;
@@ -1148,25 +1152,41 @@ function shuffle(arr) {
 }
 
 function bubbleLayout(count) {
-  // Two safe columns — left/right inset handled in CSS so nothing clips
+  // Keep tops low enough that collapsed bubbles stay above the footer
   const presets = [
     [
-      {t:4, side:"left"}, {t:6, side:"right"},
-      {t:28, side:"left"}, {t:32, side:"right"},
-      {t:52, side:"left"}, {t:56, side:"right"}
+      {t:3, side:"left"}, {t:5, side:"right"},
+      {t:24, side:"left"}, {t:28, side:"right"},
+      {t:46, side:"left"}, {t:50, side:"right"}
     ],
     [
-      {t:5, side:"right"}, {t:8, side:"left"},
-      {t:30, side:"right"}, {t:34, side:"left"},
-      {t:54, side:"right"}, {t:58, side:"left"}
+      {t:4, side:"right"}, {t:7, side:"left"},
+      {t:26, side:"right"}, {t:30, side:"left"},
+      {t:48, side:"right"}, {t:52, side:"left"}
     ],
     [
-      {t:3, side:"left"}, {t:10, side:"right"},
-      {t:26, side:"left"}, {t:36, side:"right"},
-      {t:50, side:"left"}, {t:55, side:"right"}
+      {t:2, side:"left"}, {t:8, side:"right"},
+      {t:22, side:"left"}, {t:32, side:"right"},
+      {t:44, side:"left"}, {t:49, side:"right"}
     ]
   ];
   return presets[Math.floor(Math.random() * presets.length)].slice(0, count);
+}
+
+function clampBubblesInStage() {
+  const stageRect = bubbleStage.getBoundingClientRect();
+  if (!stageRect.height) return;
+  bubbleStage.querySelectorAll(".bubble-anchor:not(.centered)").forEach(anchor => {
+    const rect = anchor.getBoundingClientRect();
+    const overflowBottom = rect.bottom - (stageRect.bottom - 6);
+    const overflowTop = stageRect.top + 4 - rect.top;
+    let topPct = parseFloat(anchor.style.top) || parseFloat(anchor.dataset.homeTop) || 0;
+    if (overflowBottom > 0) topPct -= (overflowBottom / stageRect.height) * 100;
+    if (overflowTop > 0) topPct += (overflowTop / stageRect.height) * 100;
+    topPct = Math.max(1, Math.min(topPct, 62));
+    anchor.style.top = topPct + "%";
+    anchor.dataset.homeTop = String(topPct);
+  });
 }
 
 function clearCentered(animateBack = true) {
