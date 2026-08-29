@@ -28,7 +28,7 @@ Desired loop:
 
 1. Helpers fill a **Google Form** (phone-friendly).
 2. Responses land in a **Google Sheet** Joseph can edit like a normal spreadsheet.
-3. GitHub Action copies the published CSV into `data.json` (~every 15 min, or manual **Actions → Sync Google Sheet**). Optionally Grok can also pull via Drive MCP and commit `data.json`.
+3. GitHub Action copies the sheet CSV into `data.json` when triggered (admin **Sync from spreadsheet**, or **Actions → Sync Google Sheet**). No 15-minute cron.
 
 ### If Drive MCP tools exist (expected)
 
@@ -129,7 +129,7 @@ A token in the public page = anyone can rewrite the repo. Helpers use **Form/She
 | `google-sheet.json` | Form + CSV URLs (empty until this session) |
 | `GOOGLE-FORM.md` | Human Form/Sheet setup |
 | `scripts/sync_sheet.py` | CSV → `data.json` |
-| `.github/workflows/sync-sheet.yml` | Cron 15 min + manual, optional `allow_shrink` |
+| `.github/workflows/sync-sheet.yml` | Manual only (`workflow_dispatch`), optional `allow_shrink` |
 | `.github/workflows/ingest-qa.yml` | Legacy collaborator issue ingest |
 | `DESIGN-NOTES.md` | Product/UX rationale |
 | `qr-code.png` | Stage QR |

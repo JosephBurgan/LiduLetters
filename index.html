@@ -1007,7 +1007,7 @@
         </div>
         <div class="admin-card" style="margin-top:1.1rem">
           <div class="form-group-title">Instant publish (optional)</div>
-          <p class="sub">Only needed on the computer that should write straight to the repo. Helpers do not paste this — they Submit a GitHub issue instead. Token stays on this device.</p>
+          <p class="sub">Only needed on the computer that should write straight to the repo. Token stays on this device. For spreadsheet sync it needs Contents and Actions (read and write) on LiduLetters.</p>
           <div class="form-row">
             <label for="adminToken">GitHub token</label>
             <input type="password" id="adminToken" autocomplete="off">
@@ -1015,6 +1015,7 @@
           <div class="form-actions">
             <button class="btn btn-secondary" id="saveTokenBtn" type="button">Save token on this device</button>
             <button class="btn btn-primary" id="publishBtn" type="button">Publish now</button>
+            <button class="btn btn-secondary" id="syncSheetBtn" type="button">Sync from spreadsheet</button>
           </div>
           <p class="sub" id="publishStatus"></p>
         </div>
@@ -1963,6 +1964,41 @@ document.getElementById("publishBtn").addEventListener("click", () => {
     if (!ok && !getGithubToken()) alert("Paste a GitHub token first, then Save token on this device.");
   }).catch(err => {
     setPublishStatus("Publish failed: " + (err && err.message ? err.message : err));
+  });
+});
+
+async function syncFromSpreadsheet() {
+  const token = getGithubToken();
+  if (!token) {
+    setPublishStatus("Paste a GitHub token first, then Save token on this device.");
+    return;
+  }
+  setPublishStatus("Starting spreadsheet sync…");
+  const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/sync-sheet.yml/dispatches`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + token,
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ ref: "main" })
+  });
+  if (res.status === 204) {
+    setPublishStatus("Sync started. Wait about a minute, then refresh the site. New sheet rows should appear.");
+    return;
+  }
+  if (res.status === 403 || res.status === 404) {
+    setPublishStatus("Sync could not start (" + res.status + "). Token needs Actions: Read and write on this repo, plus Contents.");
+    return;
+  }
+  setPublishStatus("Sync failed (" + res.status + ").");
+}
+
+document.getElementById("syncSheetBtn").addEventListener("click", () => {
+  syncFromSpreadsheet().catch(err => {
+    setPublishStatus("Sync failed: " + (err && err.message ? err.message : err));
   });
 });
 

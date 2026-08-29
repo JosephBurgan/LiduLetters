@@ -7,8 +7,6 @@ on:
         description: "Replace data.json even if the sheet has fewer rows (can delete letters)"
         type: boolean
         default: false
-  schedule:
-    - cron: "*/15 * * * *"
 
 permissions:
   contents: write

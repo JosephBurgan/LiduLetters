@@ -1,6 +1,6 @@
 # Google Form → Sheet → Lidu Letters
 
-Helpers fill a **Google Form**. Answers land in a **Google Sheet** you can edit. GitHub copies the sheet into `data.json` about every 15 minutes (or when you run the sync by hand).
+Helpers can add rows in the **Google Sheet** (Form is optional / on hold). GitHub copies the sheet into `data.json` when you run **Sync from spreadsheet** on `#admin`, or **Actions → Sync Google Sheet**.
 
 Grok **cannot create the Form or Sheet** until Google Drive / Sheets is connected in this session (`/mcps` — Calendar OAuth does not include Sheets). Forms is not in Grok’s connector catalog, so the Form is always created in the browser.
 
