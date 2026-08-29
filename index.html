@@ -1202,7 +1202,7 @@ function unicodeB64(str) {
   return btoa(bin);
 }
 
-async function publishData() {
+async function publishData(payload) {
   const token = getGithubToken();
   if (!token) {
     setPublishStatus("Saved on this device only. Add a GitHub token to publish so other phones/laptops see it.");
@@ -1224,7 +1224,7 @@ async function publishData() {
     setPublishStatus("Could not read data.json from GitHub (" + getRes.status + "). Check the token.");
     return false;
   }
-  const body = JSON.stringify(data, null, 2) + "\n";
+  const body = JSON.stringify(payload || data, null, 2) + "\n";
   const putRes = await fetch(url, {
     method: "PUT",
     headers: { ...headers, "Content-Type": "application/json" },
@@ -2081,16 +2081,28 @@ async function syncFromSpreadsheet() {
     setPublishStatus("Could not read the spreadsheet (" + csvRes.status + "). Keep Anyone-with-the-link Viewer.");
     return;
   }
-  const entries = sheetRowsToEntries(await csvRes.text());
+  const entries = sheetRowsToEntries(await csvRes.text()).map(migrateItem);
   if (!entries.length) {
     setPublishStatus("Sheet had no complete question/answer rows — left the site unchanged.");
     return;
   }
-  if (data.length && entries.length < data.length) {
-    setPublishStatus("Refusing to replace " + data.length + " letters with " + entries.length + " from the sheet (that would drop letters).");
+
+  let published = [];
+  try {
+    const live = await fetch("data.json?t=" + Date.now(), { cache: "no-store" });
+    if (live.ok) published = await live.json();
+  } catch (_) {}
+  if (!Array.isArray(published)) published = [];
+  if (published.length && entries.length < published.length) {
+    setPublishStatus("Refusing to replace " + published.length + " published letters with " + entries.length + " from the sheet (that would drop letters).");
     return;
   }
-  data = entries.map(migrateItem);
+
+  const sheetIds = new Set(entries.map(d => d.id));
+  const sheetQs = new Set(entries.map(d => (d.q || "").trim().toLowerCase()));
+  const extras = data.filter(d => d && !sheetIds.has(d.id) && !sheetQs.has(String(d.q || "").trim().toLowerCase()));
+
+  data = extras.length ? entries.concat(extras) : entries;
   nextId = Math.max(0, ...data.map(d => d.id)) + 1;
   saveData();
   renderBubbles();
@@ -2098,10 +2110,15 @@ async function syncFromSpreadsheet() {
     renderChips();
     renderList();
   }
-  const ok = await publishData();
-  setPublishStatus(ok
-    ? "Synced " + data.length + " letters from the spreadsheet and published. Other phones update after Pages refreshes."
-    : "Loaded " + data.length + " letters here, but publish failed. Token needs Contents: Read and write.");
+  const ok = await publishData(entries);
+  let msg = ok
+    ? "Synced " + entries.length + " letters from the spreadsheet and published. Other phones update after Pages refreshes."
+    : "Loaded " + entries.length + " letters here, but publish failed. Token needs Contents: Read and write.";
+  if (extras.length) {
+    const titles = extras.map(d => d.q).filter(Boolean).join(" · ");
+    msg += " This device still has " + extras.length + " letter(s) not in the sheet: " + titles + ". Add those rows to the spreadsheet if you want them live.";
+  }
+  setPublishStatus(msg);
 }
 
 document.getElementById("syncSheetBtn").addEventListener("click", () => {
