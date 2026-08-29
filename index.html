@@ -2098,11 +2098,7 @@ async function syncFromSpreadsheet() {
     return;
   }
 
-  const sheetIds = new Set(entries.map(d => d.id));
-  const sheetQs = new Set(entries.map(d => (d.q || "").trim().toLowerCase()));
-  const extras = data.filter(d => d && !sheetIds.has(d.id) && !sheetQs.has(String(d.q || "").trim().toLowerCase()));
-
-  data = extras.length ? entries.concat(extras) : entries;
+  data = entries;
   nextId = Math.max(0, ...data.map(d => d.id)) + 1;
   saveData();
   renderBubbles();
@@ -2111,14 +2107,9 @@ async function syncFromSpreadsheet() {
     renderList();
   }
   const ok = await publishData(entries);
-  let msg = ok
-    ? "Synced " + entries.length + " letters from the spreadsheet and published. Other phones update after Pages refreshes."
-    : "Loaded " + entries.length + " letters here, but publish failed. Token needs Contents: Read and write.";
-  if (extras.length) {
-    const titles = extras.map(d => d.q).filter(Boolean).join(" · ");
-    msg += " This device still has " + extras.length + " letter(s) not in the sheet: " + titles + ". Add those rows to the spreadsheet if you want them live.";
-  }
-  setPublishStatus(msg);
+  setPublishStatus(ok
+    ? "Synced " + entries.length + " letters from the spreadsheet and published. Local extras were dropped. Other phones update after Pages refreshes."
+    : "Loaded " + entries.length + " letters here (local extras dropped), but publish failed. Token needs Contents: Read and write.");
 }
 
 document.getElementById("syncSheetBtn").addEventListener("click", () => {
