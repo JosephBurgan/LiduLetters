@@ -1007,7 +1007,7 @@
         </div>
         <div class="admin-card" style="margin-top:1.1rem">
           <div class="form-group-title">Instant publish (optional)</div>
-          <p class="sub">Only needed on the computer that should write straight to the repo. Token stays on this device. For spreadsheet sync it needs Contents and Actions (read and write) on LiduLetters.</p>
+          <p class="sub">Only needed on the computer that should write straight to the repo. Token stays on this device. Needs Contents: Read and write on LiduLetters.</p>
           <div class="form-row">
             <label for="adminToken">GitHub token</label>
             <input type="password" id="adminToken" autocomplete="off">
@@ -1967,33 +1967,141 @@ document.getElementById("publishBtn").addEventListener("click", () => {
   });
 });
 
+function parseCsv(text) {
+  const rows = [];
+  let row = [];
+  let cell = "";
+  let i = 0;
+  let inQuotes = false;
+  const s = String(text || "").replace(/^\uFEFF/, "");
+  while (i < s.length) {
+    const ch = s[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (s[i + 1] === '"') { cell += '"'; i += 2; continue; }
+        inQuotes = false;
+        i++;
+        continue;
+      }
+      cell += ch;
+      i++;
+      continue;
+    }
+    if (ch === '"') { inQuotes = true; i++; continue; }
+    if (ch === ",") { row.push(cell); cell = ""; i++; continue; }
+    if (ch === "\r") { i++; continue; }
+    if (ch === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; i++; continue; }
+    cell += ch;
+    i++;
+  }
+  if (cell.length || row.length) { row.push(cell); rows.push(row); }
+  return rows.filter(r => r.some(c => String(c).trim() !== ""));
+}
+
+function sheetRowsToEntries(csvText) {
+  const aliases = {
+    id: "id", question: "q", q: "q", answer: "a", a: "a", date: "date",
+    event: "event", "event name": "event", location: "location",
+    tags: "topics", topics: "topics",
+    "show on home page": "home", "show on home": "home", home: "home",
+    "home bubbles": "home", more: "more", "more references": "more",
+    "more / references": "more"
+  };
+  const norm = h => String(h || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const isYes = v => ["yes", "y", "true", "1", "on", "checked"].includes(String(v || "").trim().toLowerCase());
+  function parseDate(value) {
+    const s = String(value || "").trim();
+    if (!s) return "";
+    let m = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+    if (m) return m[1] + "-" + String(Number(m[2])).padStart(2, "0") + "-" + String(Number(m[3])).padStart(2, "0");
+    m = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+    if (m) {
+      const a = Number(m[1]), b = Number(m[2]), y = m[3];
+      if (a > 12) return y + "-" + String(b).padStart(2, "0") + "-" + String(a).padStart(2, "0");
+      return y + "-" + String(a).padStart(2, "0") + "-" + String(b).padStart(2, "0");
+    }
+    return s.slice(0, 10);
+  }
+  const table = parseCsv(csvText);
+  if (!table.length) return [];
+  const headers = table[0].map(norm);
+  const entries = [];
+  for (let r = 1; r < table.length; r++) {
+    const mapped = {};
+    headers.forEach((h, c) => {
+      const field = aliases[h];
+      if (field) mapped[field] = table[r][c];
+    });
+    const q = String(mapped.q || "").trim();
+    const a = String(mapped.a || "").trim();
+    if (!q || !a) continue;
+    const rawId = String(mapped.id || "").trim();
+    let eid = 1000 + r;
+    if (rawId) {
+      const n = Number(rawId);
+      if (Number.isFinite(n)) eid = Math.trunc(n);
+    }
+    const homeRaw = mapped.home;
+    const home = (homeRaw == null || String(homeRaw).trim() === "") ? true : isYes(homeRaw);
+    entries.push({
+      id: eid,
+      q,
+      a,
+      topics: String(mapped.topics || "").split(/[,;]/).map(t => t.trim()).filter(Boolean),
+      date: parseDate(mapped.date),
+      event: String(mapped.event || "").trim(),
+      location: String(mapped.location || "").trim(),
+      home,
+      more: String(mapped.more || "").trim()
+    });
+  }
+  return entries;
+}
+
 async function syncFromSpreadsheet() {
   const token = getGithubToken();
   if (!token) {
     setPublishStatus("Paste a GitHub token first, then Save token on this device.");
     return;
   }
-  setPublishStatus("Starting spreadsheet sync…");
-  const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/sync-sheet.yml/dispatches`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: "Bearer " + token,
-      Accept: "application/vnd.github+json",
-      "X-GitHub-Api-Version": "2022-11-28",
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ ref: "main" })
-  });
-  if (res.status === 204) {
-    setPublishStatus("Sync started. Wait about a minute, then refresh the site. New sheet rows should appear.");
+  setPublishStatus("Reading spreadsheet…");
+  const cfgRes = await fetch("google-sheet.json?t=" + Date.now(), { cache: "no-store" });
+  if (!cfgRes.ok) {
+    setPublishStatus("Could not read google-sheet.json (" + cfgRes.status + ").");
     return;
   }
-  if (res.status === 403 || res.status === 404) {
-    setPublishStatus("Sync could not start (" + res.status + "). Token needs Actions: Read and write on this repo, plus Contents.");
+  const cfg = await cfgRes.json();
+  const csvUrl = (cfg && cfg.csvUrl) ? String(cfg.csvUrl).trim() : "";
+  if (!csvUrl) {
+    setPublishStatus("google-sheet.json has no csvUrl.");
     return;
   }
-  setPublishStatus("Sync failed (" + res.status + ").");
+  const csvRes = await fetch(csvUrl, { cache: "no-store" });
+  if (!csvRes.ok) {
+    setPublishStatus("Could not read the spreadsheet (" + csvRes.status + "). Keep Anyone-with-the-link Viewer.");
+    return;
+  }
+  const entries = sheetRowsToEntries(await csvRes.text());
+  if (!entries.length) {
+    setPublishStatus("Sheet had no complete question/answer rows — left the site unchanged.");
+    return;
+  }
+  if (data.length && entries.length < data.length) {
+    setPublishStatus("Refusing to replace " + data.length + " letters with " + entries.length + " from the sheet (that would drop letters).");
+    return;
+  }
+  data = entries.map(migrateItem);
+  nextId = Math.max(0, ...data.map(d => d.id)) + 1;
+  saveData();
+  renderBubbles();
+  if (viewBrowse.classList.contains("active")) {
+    renderChips();
+    renderList();
+  }
+  const ok = await publishData();
+  setPublishStatus(ok
+    ? "Synced " + data.length + " letters from the spreadsheet and published. Other phones update after Pages refreshes."
+    : "Loaded " + data.length + " letters here, but publish failed. Token needs Contents: Read and write.");
 }
 
 document.getElementById("syncSheetBtn").addEventListener("click", () => {
